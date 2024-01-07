@@ -38,36 +38,47 @@ def run_page() -> None:
     st.title("Scraping Database Generator")
     st.header("API Workbench")
 
-    left, right = st.columns(2)
+    column_splitter_args = tuple([0.5, 0.5], gap="medium")
+    first_left, first_right = st.columns(*column_splitter_args)
+    request_form = first_left.form("Request", clear_on_submit=True)
 
-    method = left.selectbox(
-        "Request method", options=["Get", "Post", "Patch", "Put", "Delete"],
-        index=st.session_state["CACHE"]["method"])
-    url = left.text_input("URL", value=st.session_state["CACHE"]["url"])
-    if left.button("Send"):
+    sending_line_left, sending_line_middle, sending_line_right = request_form.columns(
+        [0.14, 0.76, 0.1])
+
+    method = sending_line_left.selectbox("Method", options=["Get", "Post", "Patch", "Put", "Delete"],
+                                         index=st.session_state["CACHE"]["method"])
+    url = sending_line_middle.text_input(
+        "URL", value=st.session_state["CACHE"]["url"])
+    sending_line_right.markdown("## ")
+    if sending_line_right.form_submit_button("Send"):
         response = send_request(
             method=method, url=url, )
         st.session_state["CACHE"]["response"] = response.json()
         st.session_state["CACHE"]["response_status"] = response.status_code
         st.session_state["CACHE"]["response_header"] = response.headers
 
-    left.divider()
-    right.text("Headers: ")
+    first_right.subheader(
+        "Status: " + str(st.session_state["CACHE"]["response_status"]))
+
+    st.divider()
+    second_left, second_right = st.columns(*column_splitter_args)
+    second_left.text("Headers: ")
+
+    second_right.text("Header: ")
+    second_right.json(st.session_state["CACHE"]["response_header"])
     st.session_state["CACHE"]["headers"] = None
-    left.divider()
-    right.text("Parameters: ")
+
+    st.divider()
+    third_left, third_right = st.columns(*column_splitter_args)
+
+    third_left.text("Parameters: ")
     st.session_state["CACHE"]["parameters"] = None
-    left.divider()
-    right.text("JSON Payload: ")
+    third_left.divider()
+    third_left.text("JSON Payload: ")
     st.session_state["CACHE"]["json"] = None
 
-    right.text("Status: " + str(st.session_state["CACHE"]["response_status"]))
-    right.divider()
-    right.text("Header: ")
-    right.json(st.session_state["CACHE"]["response_header"])
-    right.divider()
-    right.text("Response Content: ")
-    right.json(st.session_state["CACHE"]["response"])
+    third_right.text("Response Content: ")
+    third_right.json(st.session_state["CACHE"]["response"])
 
     save_cache_button = st.sidebar.button("Save state")
     if save_cache_button:
@@ -82,8 +93,10 @@ def run_app() -> None:
     """
     st.set_page_config(
         page_title="Scraping Database Generator",
-        page_icon=":books:"
+        page_icon=":books:",
+        layout="wide"
     )
+
     if os.path.exists(cfg.PATHS.FRONTEND_CACHE):
         with st.spinner("Loading State..."):
             st.session_state["CACHE"] = json_utility.load(
