@@ -53,12 +53,12 @@ def update_state() -> None:
     """
     Function for updating state.
     """
-    print_state()
+    print_state("BEFORE")
     # Headers
-    print_state()
+    print_state("AFTER")
 
 
-def print_state(header: str = "State") -> None:
+def print_state(header: str = "STATE") -> None:
     """
     Function for printing state.
     :param header: Header string.
