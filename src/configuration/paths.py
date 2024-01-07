@@ -30,10 +30,6 @@ TEXTGENERATION_LORA_PATH = os.path.join(
     PACKAGE_PATH, "machine_learning_models", "LORAS")
 EMBEDDING_MODEL_PATH = os.path.join(
     PACKAGE_PATH, "machine_learning_models", "EMBEDDING_MODELS")
-E5_LARGE_V3_PATH = os.path.join(
-    EMBEDDING_MODEL_PATH, "intfloat_e5-large-v2")
-INSTRUCT_XL_PATH = os.path.join(
-    EMBEDDING_MODEL_PATH, "hkunlp_instructor-xl")
 
 """
 Backends
@@ -46,9 +42,3 @@ Frontends
 """
 FRONTEND_PATH = os.path.join(DATA_PATH, "frontend")
 FRONTEND_CACHE = os.path.join(FRONTEND_PATH, "cache.json")
-FRONTEND_ASSETS = os.path.join(FRONTEND_PATH, "assets")
-FLASK_COMMON_STATIC = os.path.join(
-    SOURCE_PATH, "view", "flask_frontend", "common_static")
-FLASK_COMMON_TEMPLATES = os.path.join(
-    SOURCE_PATH, "view", "flask_frontend", "common_templates")
-
