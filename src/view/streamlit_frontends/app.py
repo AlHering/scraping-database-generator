@@ -49,12 +49,40 @@ def load_state() -> None:
                 setattr(server_state, field, state[field])
 
 
+def update_state_dictionary(field: str, update: dict) -> None:
+    """
+    Function for updating a state managed dictionary.
+    :param field: State field of dictionary.
+    :param update: Streamlit update dictionary.
+    """
+    with server_state_lock[field]:
+        for entry in update["added_rows"]:
+            if len(entry.items()) > 1:
+                server_state[field].loc[entry["_index"],
+                                        ["value"]] = entry["value"]
+                update["added_rows"].remove(entry)
+
+        done = []
+        for entry_key in update["edited_rows"]:
+            if len(update["edited_rows"][entry_key].items()) > 1:
+                entry = update["edited_rows"][entry_key]
+                server_state[field].loc[entry["_index"],
+                                        ["value"]] = entry["value"]
+                done.append(entry_key)
+        for to_remove in done:
+            update["edited_rows"].pop(to_remove)
+        for entry_index in update["deleted_rows"]:
+            server_state[field].drop(
+                server_state[field].index[entry_index], inplace=True)
+        update["deleted_rows"] = []
+
+
 def update_state() -> None:
     """
     Function for updating state.
     """
     print_state("BEFORE")
-    # Headers
+    update_state_dictionary("headers", st.session_state["headers_update"])
     print_state("AFTER")
 
 
@@ -68,6 +96,7 @@ def print_state(header: str = "STATE") -> None:
     print(dict(server_state))
     print(dict(st.session_state))
     print("="*len(header))
+    print([i for i in server_state["headers"].iterrows()])
 
 
 def send_request(method: str, url: str, headers: dict = None, parameters: dict = None, json: dict = None) -> requests.Response:
@@ -125,10 +154,10 @@ def run_page() -> None:
     st.divider()
     second_left, second_right = st.columns(**column_splitter_kwargs)
     second_left.markdown("##### Request Headers: ")
-    second_left.data_editor(server_state.headers,
+    second_left.data_editor(server_state.headers.copy(),
                             key="headers_update",
                             num_rows="dynamic", use_container_width=True,
-                            on_change=print_state,
+                            on_change=update_state,
                             )
 
     second_right.markdown("##### Response Header: ")
