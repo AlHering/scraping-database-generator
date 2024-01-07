@@ -31,6 +31,15 @@ def send_request(method: str, url: str, headers: dict = None, parameters: dict =
     )
 
 
+def add_key_value_input(parent_widget: Any, key_value_dict: dict) -> None:
+    """
+    Function for adding a dynamic key value input.
+    :param parent_widget: Parent widget.
+    :param key_value_dict: Key-Value dictionary for storage.
+    """
+    pass
+
+
 def run_page() -> None:
     """
     Function for running the main page.
