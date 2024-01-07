@@ -77,13 +77,23 @@ def update_state_dictionary(field: str, update: dict) -> None:
         update["deleted_rows"] = []
 
 
-def update_state() -> None:
+def update_state_dictionaries() -> None:
     """
-    Function for updating state.
+    Function for updating state dictionaries.
     """
     print_state("BEFORE")
     update_state_dictionary("headers", st.session_state["headers_update"])
     print_state("AFTER")
+
+
+def update_state(update: dict) -> None:
+    """
+    Function for updating state.
+    :param update: State update.
+    """
+    for key in update:
+        with server_state_lock[key]:
+            server_state[key] = update[key]
 
 
 def print_state(header: str = "STATE") -> None:
@@ -108,12 +118,28 @@ def send_request(method: str, url: str, headers: dict = None, parameters: dict =
     :param parameters: API parameters.
     :param json: JSON payload.
     """
-    return requests_utility.REQUEST_METHODS[method.upper()](
-        url=url,
-        params=parameters,
-        headers=headers,
-        json=json
-    )
+    update_state({
+        "method": method,
+        "url": url
+    })
+    try:
+        response = requests_utility.REQUEST_METHODS[method.upper()](
+            url=url,
+            params=parameters,
+            headers=headers,
+            json=json
+        )
+        update_state({"response": response.json(),
+                      "response_status": response.status_code,
+                      "response_status_message": "Request successful.",
+                      "response_header": response.headers})
+    except requests.exceptions.RequestException as ex:
+        print()
+        update_state({"response": {},
+                      "response_status": -1,
+                      "response_status_message": f"Exception '{ex}' appeared.",
+                      "response_header": {}})
+    st.session_state["response_status_message"] = 0
 
 
 def run_page() -> None:
@@ -127,7 +153,7 @@ def run_page() -> None:
     # First level
 
     first_left, first_right = st.columns(**column_splitter_kwargs)
-    request_form = first_left.form("Request", clear_on_submit=True)
+    request_form = first_left.container()
 
     sending_line_left, sending_line_middle, sending_line_right = request_form.columns(
         [0.14, 0.76, 0.1])
@@ -137,17 +163,14 @@ def run_page() -> None:
     url = sending_line_middle.text_input(
         "URL", value=server_state.url)
     sending_line_right.markdown("## ")
-    if sending_line_right.form_submit_button("Send"):
-        response = send_request(
-            method=method, url=url, )
-        server_state.response = response.json()
-        server_state.response_status = response.status_code
-        server_state.response_header = response.headers
+
+    sending_line_right.button(
+        "Send", on_click=lambda: send_request(method, url))
 
     first_right.subheader(
         "Response Status: " + str(server_state.response_status))
     first_right.text(
-        server_state.response_status_message)
+        st.session_state.get("response_status_message", 99))
 
     # Second level
 
