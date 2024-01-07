@@ -143,7 +143,7 @@ def send_request() -> None:
         )
         response_status = response.status_code
         response_status_message = "Response successfully fetched"
-        response_headers = response.headers
+        response_headers = dict(response.headers)
     except requests.exceptions.RequestException as ex:
         response_status_message = f"Exception '{ex}' appeared.\n\nTrace:{traceback.format_exc()}"
 
