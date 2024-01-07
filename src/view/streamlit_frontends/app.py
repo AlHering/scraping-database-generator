@@ -53,18 +53,21 @@ def update_state() -> None:
     """
     Function for updating state.
     """
+    print_state()
     # Headers
-    pass
+    print_state()
 
 
-def print_state() -> None:
+def print_state(header: str = "State") -> None:
     """
     Function for printing state.
+    :param header: Header string.
     """
-    print("="*20)
+    header = "="*10 + header + "="*10
+    print(header)
     print(dict(server_state))
     print(dict(st.session_state))
-    print("="*20)
+    print("="*len(header))
 
 
 def send_request(method: str, url: str, headers: dict = None, parameters: dict = None, json: dict = None) -> requests.Response:
