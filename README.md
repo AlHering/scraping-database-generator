@@ -7,7 +7,7 @@ Database generation infrastructure for scraping projects.
 - Archive websites
 - Derive crawling and scraping processes from websites architecture. (Utilizes LLMs and therefore is more hardware intensive!)
 
-## Installation
+## Installation as Docker container
 ### 1. Install Docker
 ```sh
 sudo apt-get install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
