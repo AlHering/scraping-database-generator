@@ -6,4 +6,7 @@ lxml==4.9.2
 fastapi==0.99.1
 uvicorn==0.23.1
 SQLAlchemy==2.0.15
+pandas==1.5.3
+
 streamlit==1.29.0
+streamlit-server-state==0.17.1
