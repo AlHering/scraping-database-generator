@@ -6,7 +6,7 @@
 ****************************************************
 """
 import os
-from typing import Any
+from typing import Any, Callable
 import streamlit as st
 from src.configuration import configuration as cfg
 from src.utility.bronze import json_utility, requests_utility
@@ -35,8 +35,7 @@ def run_page() -> None:
     """
     Function for running the main page.
     """
-    st.title("Scraping Database Generator")
-    st.header("API Workbench")
+    st.title("API Workbench")
 
     column_splitter_kwargs = {"spec": [0.5, 0.5], "gap": "medium"}
 
@@ -69,9 +68,9 @@ def run_page() -> None:
 
     st.divider()
     second_left, second_right = st.columns(**column_splitter_kwargs)
-    second_left.text("Request Headers: ")
+    second_left.markdown("##### Request Headers: ")
 
-    second_right.text("Response Header: ")
+    second_right.markdown("##### Response Header: ")
     second_right.json(st.session_state["CACHE"]["response_header"])
     st.session_state["CACHE"]["headers"] = None
 
@@ -80,13 +79,13 @@ def run_page() -> None:
     st.divider()
     third_left, third_right = st.columns(**column_splitter_kwargs)
 
-    third_left.text("Request Parameters: ")
+    third_left.markdown("##### Request Parameters: ")
     st.session_state["CACHE"]["parameters"] = None
     third_left.divider()
-    third_left.text("Request JSON Payload: ")
+    third_left.markdown("##### Request JSON Payload: ")
     st.session_state["CACHE"]["json"] = None
 
-    third_right.text("Response Content: ")
+    third_right.markdown("##### Response Content: ")
     third_right.json(st.session_state["CACHE"]["response"])
 
     save_cache_button = st.sidebar.button("Save state")
