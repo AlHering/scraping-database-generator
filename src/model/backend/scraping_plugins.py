@@ -6,7 +6,7 @@
 ****************************************************
 """
 import os
-from src.model.scraping.connector import Connector
+from src.model.backend.connector import Connector
 from src.utility.silver import environment_utility
 from src.model.plugin_model.plugins import GenericPlugin, PluginImportException, PluginRuntimeException
 
