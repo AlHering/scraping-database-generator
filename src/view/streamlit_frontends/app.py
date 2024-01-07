@@ -6,13 +6,10 @@
 ****************************************************
 """
 import os
-import copy
-from time import sleep
 from typing import Any
-from uuid import uuid4
 import streamlit as st
 from src.configuration import configuration as cfg
-from src.utility.bronze import streamlit_utility, json_utility, requests_utility
+from src.utility.bronze import json_utility, requests_utility
 from src.utility.silver.file_system_utility import safely_create_path
 import requests
 
