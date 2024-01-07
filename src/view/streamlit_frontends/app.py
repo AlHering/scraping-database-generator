@@ -39,6 +39,9 @@ def run_page() -> None:
     st.header("API Workbench")
 
     column_splitter_kwargs = {"spec": [0.5, 0.5], "gap": "medium"}
+
+    # First level
+
     first_left, first_right = st.columns(**column_splitter_kwargs)
     request_form = first_left.form("Request", clear_on_submit=True)
 
@@ -58,25 +61,29 @@ def run_page() -> None:
         st.session_state["CACHE"]["response_header"] = response.headers
 
     first_right.subheader(
-        "Status: " + str(st.session_state["CACHE"]["response_status"]))
+        "Response Status: " + str(st.session_state["CACHE"]["response_status"]))
     first_right.text(
         st.session_state["CACHE"]["response_status_message"])
 
+    # Second level
+
     st.divider()
     second_left, second_right = st.columns(**column_splitter_kwargs)
-    second_left.text("Headers: ")
+    second_left.text("Request Headers: ")
 
-    second_right.text("Header: ")
+    second_right.text("Response Header: ")
     second_right.json(st.session_state["CACHE"]["response_header"])
     st.session_state["CACHE"]["headers"] = None
+
+    # Third level
 
     st.divider()
     third_left, third_right = st.columns(**column_splitter_kwargs)
 
-    third_left.text("Parameters: ")
+    third_left.text("Request Parameters: ")
     st.session_state["CACHE"]["parameters"] = None
     third_left.divider()
-    third_left.text("JSON Payload: ")
+    third_left.text("Request JSON Payload: ")
     st.session_state["CACHE"]["json"] = None
 
     third_right.text("Response Content: ")
