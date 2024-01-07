@@ -38,8 +38,8 @@ def run_page() -> None:
     st.title("Scraping Database Generator")
     st.header("API Workbench")
 
-    column_splitter_args = tuple([0.5, 0.5], gap="medium")
-    first_left, first_right = st.columns(*column_splitter_args)
+    column_splitter_kwargs = {"spec": [0.5, 0.5], "gap": "medium"}
+    first_left, first_right = st.columns(**column_splitter_kwargs)
     request_form = first_left.form("Request", clear_on_submit=True)
 
     sending_line_left, sending_line_middle, sending_line_right = request_form.columns(
@@ -59,9 +59,11 @@ def run_page() -> None:
 
     first_right.subheader(
         "Status: " + str(st.session_state["CACHE"]["response_status"]))
+    first_right.text(
+        st.session_state["CACHE"]["response_status_message"])
 
     st.divider()
-    second_left, second_right = st.columns(*column_splitter_args)
+    second_left, second_right = st.columns(**column_splitter_kwargs)
     second_left.text("Headers: ")
 
     second_right.text("Header: ")
@@ -69,7 +71,7 @@ def run_page() -> None:
     st.session_state["CACHE"]["headers"] = None
 
     st.divider()
-    third_left, third_right = st.columns(*column_splitter_args)
+    third_left, third_right = st.columns(**column_splitter_kwargs)
 
     third_left.text("Parameters: ")
     st.session_state["CACHE"]["parameters"] = None
@@ -109,6 +111,7 @@ def run_app() -> None:
             "parameters": {},
             "json": None,
             "response": {},
+            "response_status_message": "No request sent.",
             "response_status": -1,
             "response_header": {}
         }
