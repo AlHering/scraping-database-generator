@@ -10,8 +10,9 @@ import copy
 import json
 import traceback
 from time import sleep
-from typing import Any, Callable, Union, get_origin, get_args
+from typing import Any, Callable, Union, List, get_origin, get_args
 import streamlit as st
+from code_editor import code_editor
 import pandas as pd
 from src.configuration import configuration as cfg
 from src.utility.bronze import json_utility, requests_utility
@@ -46,7 +47,7 @@ def load_state() -> None:
                 "url": "",
                 "headers": {},
                 "parameters": {},
-                "json": None,
+                "json": {},
                 "response": {},
                 "response_status_message": "No request sent.",
                 "response_status": -1,
@@ -98,7 +99,9 @@ def trigger_state_dictionary_update(field: str) -> None:
     Function for triggering an state dictionary update.
     :param field: State field.
     """
-    update_state_dictionary(field, st.session_state[f"{field}_update"])
+    for state_dicts in ["headers", "parameters"]:
+        update_state_dictionary(
+            state_dicts, st.session_state[f"{state_dicts}_update"])
 
 
 def update_state_cache(update: dict) -> None:
@@ -115,6 +118,7 @@ def send_request(force: bool = False) -> None:
     Function for sending off request.
     :param force: Force resending request.
     """
+    print(st.session_state["CACHE"])
     if force or (st.session_state.get("url_update") and st.session_state["CACHE"]["url"] != st.session_state["url_update"]):
         st.session_state["CACHE"]["method"] = st.session_state["method_update"]
         st.session_state["CACHE"]["url"] = st.session_state["url_update"]
@@ -161,14 +165,12 @@ def run_page() -> None:
 
     column_splitter_kwargs = {"spec": [0.5, 0.5], "gap": "medium"}
 
-    # First level
-
-    first_left, first_right = st.columns(
+    left, right = st.columns(
         **column_splitter_kwargs)
-    request_form = first_left.form("request_update")
+    request_form = left.form("request_update")
 
     sending_line_left, sending_line_middle, sending_line_right = request_form.columns(
-        [0.14, 0.76, 0.1])
+        [0.18, 0.67, 0.15])
 
     sending_line_left.selectbox("Method",
                                 key="method_update",
@@ -184,36 +186,29 @@ def run_page() -> None:
 
     sending_line_right.form_submit_button(
         "Send", on_click=lambda: send_request(True))
+    request_form.divider()
+    request_form.markdown("##### Request Headers: ")
+    request_form.data_editor(st.session_state["CACHE"]["headers"].copy(),
+                             key="headers_update",
+                             num_rows="dynamic", use_container_width=True)
+    request_form.divider()
+    request_form.markdown("##### Request Parameters: ")
+    request_form.data_editor(st.session_state["CACHE"]["parameters"].copy(),
+                             key="parameters_update",
+                             num_rows="dynamic", use_container_width=True)
+    request_form.divider()
+    request_form.markdown(
+        "##### Request JSON Payload:")
+    request_form.text(
+        """(Confirm with CTRL+ENTER or by pressing "save")""")
 
-    response_status = first_right.empty()
-    response_status_message = first_right.empty()
-
-    # Second level
-
-    st.divider()
-    second_left, second_right = st.columns(**column_splitter_kwargs)
-    second_left.markdown("##### Request Headers: ")
-    second_left.data_editor(st.session_state["CACHE"]["headers"].copy(),
-                            key="headers_update",
-                            num_rows="dynamic", use_container_width=True,
-                            on_change=lambda: trigger_state_dictionary_update(
-                                "headers")
-                            )
-
-    second_right.markdown("##### Response Header: ")
-    response_headers = second_right.empty()
-
-    # Third level
-
-    st.divider()
-    third_left, third_right = st.columns(**column_splitter_kwargs)
-
-    third_left.markdown("##### Request Parameters: ")
-    third_left.divider()
-    third_left.markdown("##### Request JSON Payload: ")
-
-    third_right.markdown("##### Response Content: ")
-    response = third_right.empty()
+    response_status = right.empty()
+    response_status_message = right.empty()
+    right.divider()
+    right.markdown("##### Response Header: ")
+    response_headers = right.empty()
+    right.markdown("##### Response Content: ")
+    response = right.empty()
 
     save_cache_button = st.sidebar.button("Save state")
     if save_cache_button:
