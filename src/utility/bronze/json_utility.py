@@ -52,3 +52,5 @@ def is_json(text: str) -> bool:
         return True
     except json.JSONDecodeError:
         return False
+    except TypeError:
+        return False
