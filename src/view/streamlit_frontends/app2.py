@@ -10,7 +10,7 @@ import copy
 import json
 import traceback
 from time import sleep
-from typing import Any, Callable
+from typing import Any, Callable, Union, get_origin, get_args
 import streamlit as st
 import pandas as pd
 from src.configuration import configuration as cfg
@@ -20,15 +20,15 @@ import requests
 
 
 CUSTOM_SESSION_FIELDS = [
-    "method",
-    "url",
-    "headers",
-    "parameters",
-    "json",
-    "response",
-    "response_status_message",
-    "response_status",
-    "response_headers"
+    "method": str,
+    "url": str,
+    "headers": pd.DataFrame,
+    "parameters": pd.DataFrame,
+    "json": dict,
+    "response": Union[str, dict],
+    "response_status_message": str,
+    "response_status": int,
+    "response_headers": dict
 ]
 
 
