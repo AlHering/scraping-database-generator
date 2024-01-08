@@ -58,11 +58,8 @@ def load_state() -> None:
 
         for field in CUSTOM_SESSION_FIELDS:
             if CUSTOM_SESSION_FIELDS[field] is pd.DataFrame:
-                st.session_state["CACHE"][field] = pd.DataFrame(
-                    [{"key": key, "value": value}
-                        for key, value in state[field].items()],
-                    columns=["value"],
-                    index=["key"])
+                st.session_state["CACHE"][field] = key_value_dataframe_from_dict(
+                    state[field])
             else:
                 st.session_state["CACHE"][field] = state[field]
 
@@ -154,15 +151,30 @@ def get_json_editor_buttons() -> List[dict]:
     ]
 
 
+def key_value_dataframe_to_dict(dataframe: pd.DataFrame) -> dict:
+    """
+    Helper function for translating key-value DataFrames to dict.
+    :param dataframe: DataFrame.
+    :return: Dictionary with DataFrame content.
+    """
+    return {row["key"]: row["value"] for _, row in dataframe.iterrows()}
+
+
+def key_value_dataframe_from_dict(data: dict) -> pd.DataFrame:
+    """
+    Helper function for translating dictionaries to key-value DataFrames.
+    :param data: Dictionary.
+    :return: Key-value DataFrame.
+    """
+    return pd.DataFrame([{"key": key, "value": value} for key, value in data.items()], columns=["value"], index=["key"])
+
+
 def send_request(force: bool = False) -> None:
     """
     Function for sending off request.
     :param force: Force resending request.
     """
-    print(st.session_state["CACHE"])
     if force or (st.session_state.get("url_update") and st.session_state["CACHE"]["url"] != st.session_state["url_update"]):
-        st.session_state["CACHE"]["method"] = st.session_state["method_update"]
-        st.session_state["CACHE"]["url"] = st.session_state["url_update"]
 
         response_content = {}
         response_status = -1
@@ -269,9 +281,7 @@ def run_page() -> None:
             data = st.session_state["CACHE"]
             for field in CUSTOM_SESSION_FIELDS:
                 if CUSTOM_SESSION_FIELDS[field] is pd.DataFrame:
-                    data[field] = {
-                        row["key"]: row["value"] for _, row in data[field].iterrows()
-                    }
+                    data[field] = key_value_dataframe_to_dict(data[field])
             json_utility.save(
                 data, cfg.PATHS.FRONTEND_CACHE)
     state_preview = st.sidebar.empty()
