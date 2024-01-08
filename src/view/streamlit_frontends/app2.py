@@ -19,7 +19,7 @@ from src.utility.silver.file_system_utility import safely_create_path
 import requests
 
 
-CUSTOM_SESSION_FIELDS = [
+CUSTOM_SESSION_FIELDS = {
     "method": str,
     "url": str,
     "headers": pd.DataFrame,
@@ -29,7 +29,7 @@ CUSTOM_SESSION_FIELDS = [
     "response_status_message": str,
     "response_status": int,
     "response_headers": dict
-]
+}
 
 
 def load_state() -> None:
