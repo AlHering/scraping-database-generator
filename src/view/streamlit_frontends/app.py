@@ -113,6 +113,38 @@ def update_state_cache(update: dict) -> None:
         st.session_state["CACHE"][key] = update[key]
 
 
+def get_json_editor_buttons() -> List[dict]:
+    """
+    Function for acquiring json payload code editor buttons.
+    :return: Buttons as list of dictionaries.
+    """
+    return [
+        {
+            "name": "copy",
+            "feather": "Copy",
+            "hasText": True,
+            "alwaysOn": True,
+            "commands": ["copyAll"],
+            "style": {"top": "0rem", "right": "0.4rem"}
+        },
+        {
+            "name": "save",
+            "feather": "Save",
+            "hasText": True,
+            "alwaysOn": True,
+            "commands": [
+                    "save-state",
+                    [
+                        "response",
+                        "saved"
+                    ]
+            ],
+            "response": "saved",
+            "style": {"top": "0rem", "right": "5rem"}
+        }
+    ]
+
+
 def send_request(force: bool = False) -> None:
     """
     Function for sending off request.
@@ -201,7 +233,19 @@ def run_page() -> None:
         "##### Request JSON Payload:")
     request_form.text(
         """(Confirm with CTRL+ENTER or by pressing "save")""")
-
+    with request_form.empty():
+        try:
+            content = json.dumps(st.session_state["CACHE"]["json"], indent=2)
+            st.session_state["CACHE"]["json"] = json.loads(
+                code_editor("{\n\n\n\n}" if content == "{}" else content,
+                            key="json_update",
+                            lang="json",
+                            allow_reset=True,
+                            options={"wrap": True},
+                            buttons=get_json_editor_buttons()
+                            )["text"])
+        except json.JSONDecodeError:
+            st.session_state["CACHE"]["json"] = {}
     response_status = right.empty()
     response_status_message = right.empty()
     right.divider()
