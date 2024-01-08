@@ -20,9 +20,9 @@ from src.utility.silver.file_system_utility import safely_create_path
 import requests
 
 
-"""
-State handling
-"""
+###################
+# State handling
+###################
 
 
 CUSTOM_SESSION_FIELDS = {
@@ -130,9 +130,9 @@ def update_request_state() -> None:
     trigger_state_dictionary_update()
 
 
-"""
-Helper functions
-"""
+###################
+# Helper functions
+###################
 
 
 def key_value_dataframe_to_dict(dataframe: pd.DataFrame) -> dict:
@@ -194,9 +194,9 @@ def get_json_editor_buttons() -> List[dict]:
     ]
 
 
-"""
-Main functionality
-"""
+###################
+# Main app functionality
+###################
 
 
 def send_request(force: bool = False) -> None:
