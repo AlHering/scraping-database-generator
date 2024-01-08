@@ -20,6 +20,11 @@ from src.utility.silver.file_system_utility import safely_create_path
 import requests
 
 
+"""
+State handling
+"""
+
+
 CUSTOM_SESSION_FIELDS = {
     "method": str,
     "url": str,
@@ -62,6 +67,15 @@ def load_state() -> None:
                     state[field])
             else:
                 st.session_state["CACHE"][field] = state[field]
+
+
+def update_state_cache(update: dict) -> None:
+    """
+    Function for updating state cache.
+    :param update: State update.
+    """
+    for key in update:
+        st.session_state["CACHE"][key] = update[key]
 
 
 def update_bound_state_dictionary(field: str, update: dict) -> None:
@@ -107,13 +121,36 @@ def trigger_state_dictionary_update() -> None:
     })
 
 
-def update_state_cache(update: dict) -> None:
+def update_request_state() -> None:
     """
-    Function for updating state cache.
-    :param update: State update.
+    Function for updating request state before sending off requests.
     """
-    for key in update:
-        st.session_state["CACHE"][key] = update[key]
+    print("="*10 + "BEFORE" + "="*10)
+    print(st.session_state["CACHE"])
+    trigger_state_dictionary_update()
+
+
+"""
+Helper functions
+"""
+
+
+def key_value_dataframe_to_dict(dataframe: pd.DataFrame) -> dict:
+    """
+    Helper function for translating key-value DataFrames to dict.
+    :param dataframe: DataFrame.
+    :return: Dictionary with DataFrame content.
+    """
+    return {row["key"]: row["value"] for _, row in dataframe.iterrows()}
+
+
+def key_value_dataframe_from_dict(data: dict) -> pd.DataFrame:
+    """
+    Helper function for translating dictionaries to key-value DataFrames.
+    :param data: Dictionary.
+    :return: Key-value DataFrame.
+    """
+    return pd.DataFrame([{"key": key, "value": value} for key, value in data.items()], columns=["value"], index=["key"])
 
 
 def get_json_editor_buttons() -> List[dict]:
@@ -157,31 +194,9 @@ def get_json_editor_buttons() -> List[dict]:
     ]
 
 
-def key_value_dataframe_to_dict(dataframe: pd.DataFrame) -> dict:
-    """
-    Helper function for translating key-value DataFrames to dict.
-    :param dataframe: DataFrame.
-    :return: Dictionary with DataFrame content.
-    """
-    return {row["key"]: row["value"] for _, row in dataframe.iterrows()}
-
-
-def key_value_dataframe_from_dict(data: dict) -> pd.DataFrame:
-    """
-    Helper function for translating dictionaries to key-value DataFrames.
-    :param data: Dictionary.
-    :return: Key-value DataFrame.
-    """
-    return pd.DataFrame([{"key": key, "value": value} for key, value in data.items()], columns=["value"], index=["key"])
-
-
-def update_request_state() -> None:
-    """
-    Function for updating request state before sending off requests.
-    """
-    print("="*10 + "BEFORE" + "="*10)
-    print(st.session_state["CACHE"])
-    trigger_state_dictionary_update()
+"""
+Main functionality
+"""
 
 
 def send_request(force: bool = False) -> None:
