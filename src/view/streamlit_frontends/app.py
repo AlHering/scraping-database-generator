@@ -10,10 +10,10 @@ import copy
 import json
 import traceback
 from time import sleep
+from http.client import responses as status_codes
 from typing import Any, Callable, Union, List, get_origin, get_args
 import streamlit as st
 from code_editor import code_editor
-import pandas as pd
 from src.configuration import configuration as cfg
 from src.utility.bronze import json_utility, requests_utility
 from src.utility.silver.file_system_utility import safely_create_path
@@ -25,48 +25,26 @@ import requests
 ###################
 
 
-CUSTOM_SESSION_FIELDS = {
-    "method": str,
-    "url": str,
-    "headers": pd.DataFrame,
-    "parameters": pd.DataFrame,
-    "json": dict,
-    "response": Union[str, dict],
-    "response_status_message": str,
-    "response_status": int,
-    "response_headers": dict
-}
-
-
 def load_state() -> None:
     """
     Function for loading server state.
     """
     with st.spinner("Loading State..."):
         if os.path.exists(cfg.PATHS.FRONTEND_CACHE):
-            state = json_utility.load(
+            st.session_state["CACHE"] = json_utility.load(
                 cfg.PATHS.FRONTEND_CACHE)
         else:
-            state = {
+            st.session_state["CACHE"] = {
                 "method": "GET",
                 "url": "",
                 "headers": {},
-                "parameters": {},
+                "params": {},
                 "json": {},
                 "response": {},
                 "response_status_message": "No request sent.",
                 "response_status": -1,
                 "response_headers": {}
             }
-
-        st.session_state["CACHE"] = {}
-
-        for field in CUSTOM_SESSION_FIELDS:
-            if CUSTOM_SESSION_FIELDS[field] is pd.DataFrame:
-                st.session_state["CACHE"][field] = key_value_dataframe_from_dict(
-                    state[field])
-            else:
-                st.session_state["CACHE"][field] = state[field]
 
 
 def update_state_cache(update: dict) -> None:
@@ -78,33 +56,6 @@ def update_state_cache(update: dict) -> None:
         st.session_state["CACHE"][key] = update[key]
 
 
-def update_bound_state_dictionary(field: str, update: dict) -> None:
-    """
-    Function for updating a bound state managed dictionary.
-    :param field: State field of dictionary.
-    :param update: Streamlit update dictionary.
-    """
-    for entry in update["added_rows"]:
-        if len(entry.items()) > 1:
-            st.session_state["CACHE"][field].loc[entry["_index"],
-                                                 ["value"]] = entry["value"]
-            update["added_rows"].remove(entry)
-
-    done = []
-    for entry_key in update["edited_rows"]:
-        if len(update["edited_rows"][entry_key].items()) > 1:
-            entry = update["edited_rows"][entry_key]
-            st.session_state["CACHE"][field].loc[entry["_index"],
-                                                 ["value"]] = entry["value"]
-            done.append(entry_key)
-    for to_remove in done:
-        update["edited_rows"].pop(to_remove)
-    for entry_index in update["deleted_rows"]:
-        st.session_state["CACHE"][field].drop(
-            st.session_state["CACHE"][field].index[entry_index], inplace=True)
-    update["deleted_rows"] = []
-
-
 def trigger_state_dictionary_update() -> None:
     """
     Function for triggering an state dictionary update.
@@ -113,11 +64,11 @@ def trigger_state_dictionary_update() -> None:
         "method": st.session_state["method_update"],
         "url": st.session_state["url_update"]
     })
-    for state_dicts in ["headers", "parameters"]:
-        update_bound_state_dictionary(
-            state_dicts, st.session_state[f"{state_dicts}_update"])
+
     update_state_cache({
-        "json": {} if st.session_state.get("json_update") is None else st.session_state["json_update"]
+        state_dicts: {} if st.session_state.get(f"{state_dicts}_update") is None
+        else json.loads(st.session_state[f"{state_dicts}_update"]["text"])
+        for state_dicts in ["headers", "params", "json"]
     })
 
 
@@ -128,29 +79,13 @@ def update_request_state() -> None:
     print("="*10 + "BEFORE" + "="*10)
     print(st.session_state["CACHE"])
     trigger_state_dictionary_update()
+    print("="*10 + "AFTER" + "="*10)
+    print(st.session_state["CACHE"])
 
 
 ###################
 # Helper functions
 ###################
-
-
-def key_value_dataframe_to_dict(dataframe: Union[dict, pd.DataFrame]) -> dict:
-    """
-    Helper function for translating key-value DataFrames to dict.
-    :param dataframe: DataFrame.
-    :return: Dictionary with DataFrame content.
-    """
-    return dataframe if isinstance(dataframe, dict) else {row["key"]: row["value"] for _, row in dataframe.iterrows()}
-
-
-def key_value_dataframe_from_dict(data: Union[dict, pd.DataFrame]) -> pd.DataFrame:
-    """
-    Helper function for translating dictionaries to key-value DataFrames.
-    :param data: Dictionary.
-    :return: Key-value DataFrame.
-    """
-    return data if isinstance(data, pd.DataFrame) else pd.DataFrame([{"key": key, "value": value} for key, value in data.items()], columns=["value"], index=["key"])
 
 
 def get_json_editor_buttons() -> List[dict]:
@@ -159,7 +94,6 @@ def get_json_editor_buttons() -> List[dict]:
     :return: Buttons as list of dictionaries.
     """
     return [
-
         {
             "name": "save",
             "feather": "Save",
@@ -194,6 +128,28 @@ def get_json_editor_buttons() -> List[dict]:
     ]
 
 
+def insert_json_block(parent_widget: Any, cache_field: str) -> None:
+    """
+    Function for inserting an json-based code block.
+    :param parent_widget: Widget to insert code block under.
+    :param cache_field: Bound state cache field.
+    """
+    with parent_widget.empty():
+        try:
+            content = json.dumps(
+                st.session_state["CACHE"][cache_field], indent=2)
+            st.session_state["CACHE"][cache_field] = json.loads(
+                code_editor("{\n\n\n\n}" if content == "{}" else content,
+                            key=f"{cache_field}_update",
+                            lang="json",
+                            allow_reset=True,
+                            options={"wrap": True},
+                            buttons=get_json_editor_buttons()
+                            )["text"])
+        except json.JSONDecodeError:
+            st.session_state["CACHE"][cache_field] = {}
+
+
 ###################
 # Main app functionality
 ###################
@@ -205,6 +161,7 @@ def send_request(force: bool = False) -> None:
     :param force: Force resending request.
     """
     if force or (st.session_state.get("url_update") and st.session_state["CACHE"]["url"] != st.session_state["url_update"]):
+        update_request_state()
         response_content = {}
         response_status = -1
         response_status_message = "An unknown error appeared"
@@ -214,12 +171,15 @@ def send_request(force: bool = False) -> None:
         try:
             response = requests_utility.REQUEST_METHODS[st.session_state["CACHE"]["method"]](
                 url=st.session_state["CACHE"]["url"],
-                params=None,
-                headers=None,
-                json=None
+                params=st.session_state["CACHE"]["params"] if st.session_state["CACHE"].get(
+                    "params") else None,
+                headers=st.session_state["CACHE"]["headers"] if st.session_state["CACHE"].get(
+                    "headers") else None,
+                json=st.session_state["CACHE"]["json"] if st.session_state["CACHE"].get(
+                    "json") else None
             )
             response_status = response.status_code
-            response_status_message = "Response successfully fetched"
+            response_status_message = f"Status description: {status_codes[response_status]}"
             response_headers = dict(response.headers)
         except requests.exceptions.RequestException as ex:
             response_status_message = f"Exception '{ex}' appeared.\n\nTrace:{traceback.format_exc()}"
@@ -235,7 +195,6 @@ def send_request(force: bool = False) -> None:
                             "response_status_message": response_status_message,
                             "response_headers": response_headers})
 
-        del st.session_state.url_update
         run_page()
 
 
@@ -270,32 +229,16 @@ def run_page() -> None:
         "Send", on_click=lambda: send_request(True))
     request_form.divider()
     request_form.markdown("##### Request Headers: ")
-    request_form.data_editor(key_value_dataframe_from_dict(st.session_state["CACHE"]["headers"]).copy(),
-                             key="headers_update",
-                             num_rows="dynamic", use_container_width=True)
+    insert_json_block(request_form, "headers")
     request_form.divider()
     request_form.markdown("##### Request Parameters: ")
-    request_form.data_editor(key_value_dataframe_from_dict(st.session_state["CACHE"]["parameters"]).copy(),
-                             key="parameters_update",
-                             num_rows="dynamic", use_container_width=True)
+    insert_json_block(request_form, "params")
     request_form.divider()
     request_form.markdown(
         "##### Request JSON Payload:")
     request_form.text(
         """(Confirm with CTRL+ENTER or by pressing "save")""")
-    with request_form.empty():
-        try:
-            content = json.dumps(st.session_state["CACHE"]["json"], indent=2)
-            st.session_state["CACHE"]["json"] = json.loads(
-                code_editor("{\n\n\n\n}" if content == "{}" else content,
-                            key="json_update",
-                            lang="json",
-                            allow_reset=True,
-                            options={"wrap": True},
-                            buttons=get_json_editor_buttons()
-                            )["text"])
-        except json.JSONDecodeError:
-            st.session_state["CACHE"]["json"] = {}
+    insert_json_block(request_form, "json")
     response_status = right.empty()
     response_status_message = right.empty()
     right.divider()
@@ -307,12 +250,8 @@ def run_page() -> None:
     save_cache_button = st.sidebar.button("Save state")
     if save_cache_button:
         with st.spinner("Saving State..."):
-            data = st.session_state["CACHE"]
-            for field in CUSTOM_SESSION_FIELDS:
-                if CUSTOM_SESSION_FIELDS[field] is pd.DataFrame:
-                    data[field] = key_value_dataframe_to_dict(data[field])
             json_utility.save(
-                data, cfg.PATHS.FRONTEND_CACHE)
+                st.session_state["CACHE"], cfg.PATHS.FRONTEND_CACHE)
     state_preview = st.sidebar.empty()
 
     while True:
