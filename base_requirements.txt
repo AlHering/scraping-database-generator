@@ -11,4 +11,6 @@ pandas==1.5.3
 streamlit==1.29.0
 streamlit-server-state==0.17.1
 streamlit-code-editor==0.1.10
+
 dash==2.14.2
+dash-bootstrap-components==1.5.0
