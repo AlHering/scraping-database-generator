@@ -25,29 +25,6 @@ import requests
 ###################
 
 
-st.set_page_config(
-    page_title="Scraping Database Generator",
-    page_icon=":books:",
-    layout="wide"
-)
-with st.spinner("Loading State..."):
-    if os.path.exists(cfg.PATHS.FRONTEND_CACHE):
-        st.session_state["CACHE"] = json_utility.load(
-            cfg.PATHS.FRONTEND_CACHE)
-    else:
-        st.session_state["CACHE"] = {
-            "method": "GET",
-            "url": "",
-            "headers": {},
-            "params": {},
-            "json": {},
-            "response": {},
-            "response_status_message": "No request sent.",
-            "response_status": -1,
-            "response_headers": {}
-        }
-
-
 def update_state_cache(update: dict) -> None:
     """
     Function for updating state cache.
@@ -199,13 +176,31 @@ def send_request(force: bool = False) -> None:
                             "response_status_message": response_status_message,
                             "response_headers": response_headers})
 
-        run_page()
 
+if __name__ == "__main__":
+    st.set_page_config(
+        page_title="Scraping Database Generator",
+        page_icon=":books:",
+        layout="wide"
+    )
 
-def run_page() -> None:
-    """
-    Function for running the main page.
-    """
+    with st.spinner("Loading State..."):
+        if os.path.exists(cfg.PATHS.FRONTEND_CACHE):
+            st.session_state["CACHE"] = json_utility.load(
+                cfg.PATHS.FRONTEND_CACHE)
+        else:
+            st.session_state["CACHE"] = {
+                "method": "GET",
+                "url": "",
+                "headers": {},
+                "params": {},
+                "json": {},
+                "response": {},
+                "response_status_message": "No request sent.",
+                "response_status": -1,
+                "response_headers": {}
+            }
+
     st.title("API Workbench")
 
     column_splitter_kwargs = {"spec": [0.5, 0.5], "gap": "medium"}
@@ -258,35 +253,14 @@ def run_page() -> None:
                 st.session_state["CACHE"], cfg.PATHS.FRONTEND_CACHE)
     state_preview = st.sidebar.empty()
 
-    previous_header = {"placeholder": "header"}
-    previous_content_length = -1
-    while True:
-        if previous_header != st.session_state['CACHE']["response_headers"] or previous_content_length != len(st.session_state['CACHE']["response"]):
-            if st.session_state['CACHE']["response_status_message"] != "No request sent." or previous_header == {"placeholder": "header"}:
-                print("New data, reloading ...")
-                previous_header = st.session_state['CACHE']["response_headers"]
-                previous_content_length = len(
-                    st.session_state['CACHE']["response"])
-                response_status.subheader(
-                    f"Response Status {st.session_state['CACHE']['response_status']}")
-                response_status_message.write(
-                    st.session_state['CACHE']["response_status_message"])
-                response_headers.json(
-                    st.session_state['CACHE']["response_headers"])
-                if isinstance(st.session_state['CACHE']["response"], dict):
-                    response.json(st.session_state['CACHE']["response"])
-                else:
-                    response.write(st.session_state['CACHE']["response"])
-                state_preview.json(dict(st.session_state))
-        sleep(1)
-
-
-def run_app() -> None:
-    """
-    Main runner function.
-    """
-    run_page()
-
-
-if __name__ == "__main__":
-    run_app()
+    show_response_button = st.sidebar.button("Show Response")
+    if show_response_button:
+        print(dict(st.session_state))
+        response_status_message.write(
+            st.session_state['CACHE']["response_status_message"])
+        response_headers.json(
+            st.session_state['CACHE']["response_headers"])
+        if isinstance(st.session_state['CACHE']["response"], dict):
+            response.json(st.session_state['CACHE']["response"])
+        else:
+            response.write(st.session_state['CACHE']["response"])
