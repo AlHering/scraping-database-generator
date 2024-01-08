@@ -25,26 +25,27 @@ import requests
 ###################
 
 
-def load_state() -> None:
-    """
-    Function for loading server state.
-    """
-    with st.spinner("Loading State..."):
-        if os.path.exists(cfg.PATHS.FRONTEND_CACHE):
-            st.session_state["CACHE"] = json_utility.load(
-                cfg.PATHS.FRONTEND_CACHE)
-        else:
-            st.session_state["CACHE"] = {
-                "method": "GET",
-                "url": "",
-                "headers": {},
-                "params": {},
-                "json": {},
-                "response": {},
-                "response_status_message": "No request sent.",
-                "response_status": -1,
-                "response_headers": {}
-            }
+st.set_page_config(
+    page_title="Scraping Database Generator",
+    page_icon=":books:",
+    layout="wide"
+)
+with st.spinner("Loading State..."):
+    if os.path.exists(cfg.PATHS.FRONTEND_CACHE):
+        st.session_state["CACHE"] = json_utility.load(
+            cfg.PATHS.FRONTEND_CACHE)
+    else:
+        st.session_state["CACHE"] = {
+            "method": "GET",
+            "url": "",
+            "headers": {},
+            "params": {},
+            "json": {},
+            "response": {},
+            "response_status_message": "No request sent.",
+            "response_status": -1,
+            "response_headers": {}
+        }
 
 
 def update_state_cache(update: dict) -> None:
@@ -62,7 +63,7 @@ def trigger_state_dictionary_update() -> None:
     """
     update_state_cache({
         "method": st.session_state["method_update"],
-        "url": st.session_state["url_update"]
+        "url": st.session_state["url_update"] if st.session_state["url_update"] else st.session_state["url"]
     })
 
     for state_dict in ["headers", "params", "json"]:
@@ -284,12 +285,6 @@ def run_app() -> None:
     """
     Main runner function.
     """
-    st.set_page_config(
-        page_title="Scraping Database Generator",
-        page_icon=":books:",
-        layout="wide"
-    )
-    load_state()
     run_page()
 
 
