@@ -135,7 +135,7 @@ def update_request_state() -> None:
 ###################
 
 
-def key_value_dataframe_to_dict(dataframe: pd.DataFrame) -> dict:
+def key_value_dataframe_to_dict(dataframe: Union[dict, pd.DataFrame]) -> dict:
     """
     Helper function for translating key-value DataFrames to dict.
     :param dataframe: DataFrame.
@@ -144,7 +144,7 @@ def key_value_dataframe_to_dict(dataframe: pd.DataFrame) -> dict:
     return dataframe if isinstance(dataframe, dict) else {row["key"]: row["value"] for _, row in dataframe.iterrows()}
 
 
-def key_value_dataframe_from_dict(data: dict) -> pd.DataFrame:
+def key_value_dataframe_from_dict(data: Union[dict, pd.DataFrame]) -> pd.DataFrame:
     """
     Helper function for translating dictionaries to key-value DataFrames.
     :param data: Dictionary.
@@ -270,12 +270,12 @@ def run_page() -> None:
         "Send", on_click=lambda: send_request(True))
     request_form.divider()
     request_form.markdown("##### Request Headers: ")
-    request_form.data_editor(st.session_state["CACHE"]["headers"].copy(),
+    request_form.data_editor(key_value_dataframe_from_dict(st.session_state["CACHE"]["headers"]).copy(),
                              key="headers_update",
                              num_rows="dynamic", use_container_width=True)
     request_form.divider()
     request_form.markdown("##### Request Parameters: ")
-    request_form.data_editor(st.session_state["CACHE"]["parameters"].copy(),
+    request_form.data_editor(key_value_dataframe_from_dict(st.session_state["CACHE"]["parameters"]).copy(),
                              key="parameters_update",
                              num_rows="dynamic", use_container_width=True)
     request_form.divider()
