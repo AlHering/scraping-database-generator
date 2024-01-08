@@ -98,9 +98,7 @@ def trigger_state_dictionary_update(field: str) -> None:
     Function for triggering an state dictionary update.
     :param field: State field.
     """
-    print_state("BEFORE")
     update_state_dictionary(field, st.session_state[f"{field}_update"])
-    print_state("AFTER")
 
 
 def update_state_cache(update: dict) -> None:
@@ -112,58 +110,47 @@ def update_state_cache(update: dict) -> None:
         st.session_state["CACHE"][key] = update[key]
 
 
-def print_state(header: str = "STATE") -> None:
-    """
-    Function for printing state.
-    :param header: Header string.
-    """
-    header = "="*10 + header + "="*10
-    print(header)
-    print(dict(st.session_state))
-    print("="*len(header))
-
-
-def send_request() -> None:
+def send_request(force: bool = False) -> None:
     """
     Function for sending off request.
+    :param force: Force resending request.
     """
-    st.session_state["CACHE"]["method"] = st.session_state["method_update"]
-    st.session_state["CACHE"]["url"] = st.session_state["url_update"]
+    if force or (st.session_state.get("url_update") and st.session_state["CACHE"]["url"] != st.session_state["url_update"]):
+        st.session_state["CACHE"]["method"] = st.session_state["method_update"]
+        st.session_state["CACHE"]["url"] = st.session_state["url_update"]
 
-    response_content = {}
-    response_status = -1
-    response_status_message = "An unknown error appeared"
-    response_headers = {}
+        response_content = {}
+        response_status = -1
+        response_status_message = "An unknown error appeared"
+        response_headers = {}
 
-    response = None
-    try:
-        response = requests_utility.REQUEST_METHODS[st.session_state["CACHE"]["method"]](
-            url=st.session_state["CACHE"]["url"],
-            params=None,
-            headers=None,
-            json=None
-        )
-        response_status = response.status_code
-        response_status_message = "Response successfully fetched"
-        response_headers = dict(response.headers)
-    except requests.exceptions.RequestException as ex:
-        response_status_message = f"Exception '{ex}' appeared.\n\nTrace:{traceback.format_exc()}"
-
-    if response is not None:
+        response = None
         try:
-            response_content = response.json()
-        except json.decoder.JSONDecodeError:
-            response_content = response.text
+            response = requests_utility.REQUEST_METHODS[st.session_state["CACHE"]["method"]](
+                url=st.session_state["CACHE"]["url"],
+                params=None,
+                headers=None,
+                json=None
+            )
+            response_status = response.status_code
+            response_status_message = "Response successfully fetched"
+            response_headers = dict(response.headers)
+        except requests.exceptions.RequestException as ex:
+            response_status_message = f"Exception '{ex}' appeared.\n\nTrace:{traceback.format_exc()}"
 
-    update_state_cache({"response": response_content,
-                        "response_status": response_status,
-                        "response_status_message": response_status_message,
-                        "response_headers": response_headers})
+        if response is not None:
+            try:
+                response_content = response.json()
+            except json.decoder.JSONDecodeError:
+                response_content = response.text
 
-    del st.session_state.method_update
-    del st.session_state.url_update
-    del st.session_state.headers_update
-    run_page()
+        update_state_cache({"response": response_content,
+                            "response_status": response_status,
+                            "response_status_message": response_status_message,
+                            "response_headers": response_headers})
+
+        del st.session_state.url_update
+        run_page()
 
 
 def run_page() -> None:
@@ -178,7 +165,7 @@ def run_page() -> None:
 
     first_left, first_right = st.columns(
         **column_splitter_kwargs)
-    request_form = first_left.container()
+    request_form = first_left.form("request_update")
 
     sending_line_left, sending_line_middle, sending_line_right = request_form.columns(
         [0.14, 0.76, 0.1])
@@ -191,11 +178,12 @@ def run_page() -> None:
                                     requests_utility.REQUEST_METHODS.keys()).index(st.session_state["CACHE"]["method"]))
     sending_line_middle.text_input("URL",
                                    key="url_update",
-                                   value=st.session_state["CACHE"]["url"])
+                                   value=st.session_state.get(
+                                       "url_update", ""))
     sending_line_right.markdown("## ")
 
-    sending_line_right.button(
-        "Send", on_click=lambda: send_request())
+    sending_line_right.form_submit_button(
+        "Send", on_click=lambda: send_request(True))
 
     response_status = first_right.empty()
     response_status_message = first_right.empty()
@@ -238,6 +226,7 @@ def run_page() -> None:
                     }
             json_utility.save(
                 data, cfg.PATHS.FRONTEND_CACHE)
+    state_preview = st.sidebar.empty()
 
     while True:
         response_status.subheader(
@@ -249,6 +238,7 @@ def run_page() -> None:
             response.json(st.session_state['CACHE']["response"])
         else:
             response.write(st.session_state['CACHE']["response"])
+        state_preview.json(dict(st.session_state))
         sleep(1)
 
 
