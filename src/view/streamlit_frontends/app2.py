@@ -53,8 +53,8 @@ def load_state() -> None:
                 "response_headers": {}
             }
 
-        for field in state:
-            if isinstance(state[field], dict):
+        for field in CUSTOM_SESSION_FIELDS:
+            if CUSTOM_SESSION_FIELDS[field] is pd.DataFrame:
                 st.session_state[field] = pd.DataFrame(
                     [{"key": key, "value": value}
                         for key, value in state[field].items()],
