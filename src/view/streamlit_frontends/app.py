@@ -141,7 +141,7 @@ def key_value_dataframe_to_dict(dataframe: pd.DataFrame) -> dict:
     :param dataframe: DataFrame.
     :return: Dictionary with DataFrame content.
     """
-    return {row["key"]: row["value"] for _, row in dataframe.iterrows()}
+    return dataframe if isinstance(dataframe, dict) else {row["key"]: row["value"] for _, row in dataframe.iterrows()}
 
 
 def key_value_dataframe_from_dict(data: dict) -> pd.DataFrame:
@@ -150,7 +150,7 @@ def key_value_dataframe_from_dict(data: dict) -> pd.DataFrame:
     :param data: Dictionary.
     :return: Key-value DataFrame.
     """
-    return pd.DataFrame([{"key": key, "value": value} for key, value in data.items()], columns=["value"], index=["key"])
+    return data if isinstance(data, pd.DataFrame) else pd.DataFrame([{"key": key, "value": value} for key, value in data.items()], columns=["value"], index=["key"])
 
 
 def get_json_editor_buttons() -> List[dict]:
