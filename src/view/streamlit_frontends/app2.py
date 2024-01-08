@@ -53,15 +53,17 @@ def load_state() -> None:
                 "response_headers": {}
             }
 
+        st.session_state["CACHE"] = {}
+
         for field in CUSTOM_SESSION_FIELDS:
             if CUSTOM_SESSION_FIELDS[field] is pd.DataFrame:
-                st.session_state[field] = pd.DataFrame(
+                st.session_state["CACHE"][field] = pd.DataFrame(
                     [{"key": key, "value": value}
                         for key, value in state[field].items()],
                     columns=["value"],
                     index=["key"])
             else:
-                st.session_state[field] = state[field]
+                st.session_state["CACHE"][field] = state[field]
 
 
 def update_state_dictionary(field: str, update: dict) -> None:
@@ -72,22 +74,22 @@ def update_state_dictionary(field: str, update: dict) -> None:
     """
     for entry in update["added_rows"]:
         if len(entry.items()) > 1:
-            st.session_state[field].loc[entry["_index"],
-                                        ["value"]] = entry["value"]
+            st.session_state["CACHE"][field].loc[entry["_index"],
+                                                 ["value"]] = entry["value"]
             update["added_rows"].remove(entry)
 
     done = []
     for entry_key in update["edited_rows"]:
         if len(update["edited_rows"][entry_key].items()) > 1:
             entry = update["edited_rows"][entry_key]
-            st.session_state[field].loc[entry["_index"],
-                                        ["value"]] = entry["value"]
+            st.session_state["CACHE"][field].loc[entry["_index"],
+                                                 ["value"]] = entry["value"]
             done.append(entry_key)
     for to_remove in done:
         update["edited_rows"].pop(to_remove)
     for entry_index in update["deleted_rows"]:
-        st.session_state[field].drop(
-            st.session_state[field].index[entry_index], inplace=True)
+        st.session_state["CACHE"][field].drop(
+            st.session_state["CACHE"][field].index[entry_index], inplace=True)
     update["deleted_rows"] = []
 
 
@@ -101,13 +103,13 @@ def trigger_state_dictionary_update(field: str) -> None:
     print_state("AFTER")
 
 
-def update_state(update: dict) -> None:
+def update_state_cache(update: dict) -> None:
     """
-    Function for updating state.
+    Function for updating state cache.
     :param update: State update.
     """
     for key in update:
-        st.session_state[key] = update[key]
+        st.session_state["CACHE"][key] = update[key]
 
 
 def print_state(header: str = "STATE") -> None:
@@ -125,8 +127,8 @@ def send_request() -> None:
     """
     Function for sending off request.
     """
-    st.session_state["method"] = st.session_state["method_update"]
-    st.session_state["url"] = st.session_state["url_update"]
+    st.session_state["CACHE"]["method"] = st.session_state["method_update"]
+    st.session_state["CACHE"]["url"] = st.session_state["url_update"]
 
     response_content = {}
     response_status = -1
@@ -135,8 +137,8 @@ def send_request() -> None:
 
     response = None
     try:
-        response = requests_utility.REQUEST_METHODS[st.session_state["method"]](
-            url=st.session_state["url"],
+        response = requests_utility.REQUEST_METHODS[st.session_state["CACHE"]["method"]](
+            url=st.session_state["CACHE"]["url"],
             params=None,
             headers=None,
             json=None
@@ -153,10 +155,10 @@ def send_request() -> None:
         except json.decoder.JSONDecodeError:
             response_content = response.text
 
-    update_state({"response": response_content,
-                  "response_status": response_status,
-                  "response_status_message": response_status_message,
-                  "response_headers": response_headers})
+    update_state_cache({"response": response_content,
+                        "response_status": response_status,
+                        "response_status_message": response_status_message,
+                        "response_headers": response_headers})
 
     del st.session_state.method_update
     del st.session_state.url_update
@@ -186,10 +188,10 @@ def run_page() -> None:
                                 options=list(
                                     requests_utility.REQUEST_METHODS.keys()),
                                 index=list(
-                                    requests_utility.REQUEST_METHODS.keys()).index(st.session_state["method"]))
+                                    requests_utility.REQUEST_METHODS.keys()).index(st.session_state["CACHE"]["method"]))
     sending_line_middle.text_input("URL",
                                    key="url_update",
-                                   value=st.session_state["url"])
+                                   value=st.session_state["CACHE"]["url"])
     sending_line_right.markdown("## ")
 
     sending_line_right.button(
@@ -203,7 +205,7 @@ def run_page() -> None:
     st.divider()
     second_left, second_right = st.columns(**column_splitter_kwargs)
     second_left.markdown("##### Request Headers: ")
-    second_left.data_editor(st.session_state["headers"].copy(),
+    second_left.data_editor(st.session_state["CACHE"]["headers"].copy(),
                             key="headers_update",
                             num_rows="dynamic", use_container_width=True,
                             on_change=lambda: trigger_state_dictionary_update(
@@ -228,26 +230,25 @@ def run_page() -> None:
     save_cache_button = st.sidebar.button("Save state")
     if save_cache_button:
         with st.spinner("Saving State..."):
-            data = dict(st.session_state)
-            for key in data:
-                if isinstance(data[key], pd.DataFrame):
-                    data[key] = {
-                        row["key"]: row["value"] for _, row in data[key].iterrows()
+            data = st.session_state["CACHE"]
+            for field in CUSTOM_SESSION_FIELDS:
+                if CUSTOM_SESSION_FIELDS[field] is pd.DataFrame:
+                    data[field] = {
+                        row["key"]: row["value"] for _, row in data[field].iterrows()
                     }
             json_utility.save(
                 data, cfg.PATHS.FRONTEND_CACHE)
 
     while True:
-        st.session_state["response_change"] = False
         response_status.subheader(
-            f"Response Status {st.session_state['response_status']}")
+            f"Response Status {st.session_state['CACHE']['response_status']}")
         response_status_message.write(
-            st.session_state["response_status_message"])
-        response_headers.json(st.session_state["response_headers"])
-        if isinstance(st.session_state["response"], dict):
-            response.json(st.session_state["response"])
+            st.session_state['CACHE']["response_status_message"])
+        response_headers.json(st.session_state['CACHE']["response_headers"])
+        if isinstance(st.session_state['CACHE']["response"], dict):
+            response.json(st.session_state['CACHE']["response"])
         else:
-            response.write(st.session_state["response"])
+            response.write(st.session_state['CACHE']["response"])
         sleep(1)
 
 
