@@ -11,5 +11,5 @@ import streamlit.web.bootstrap as streamlit_bootstrap
 
 
 if __name__ == "__main__":
-    streamlit_bootstrap.run(os.path.join(cfg.PATHS.SOURCE_PATH, "view", "streamlit_frontends", "app.py"),
+    streamlit_bootstrap.run(os.path.join(cfg.PATHS.SOURCE_PATH, "view", "streamlit_frontend", "app.py"),
                             "", [], [],)
