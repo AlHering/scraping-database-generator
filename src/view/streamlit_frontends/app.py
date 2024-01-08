@@ -65,11 +65,12 @@ def trigger_state_dictionary_update() -> None:
         "url": st.session_state["url_update"]
     })
 
-    update_state_cache({
-        state_dicts: {} if st.session_state.get(f"{state_dicts}_update") is None
-        else json.loads(st.session_state[f"{state_dicts}_update"]["text"])
-        for state_dicts in ["headers", "params", "json"]
-    })
+    for state_dict in ["headers", "params", "json"]:
+        if st.session_state.get(f"{state_dict}_update") is None or not json_utility.is_json(st.session_state[f"{state_dict}_update"]["text"]):
+            update_state_cache({state_dict: {}})
+        else:
+            update_state_cache({state_dict: json.loads(
+                st.session_state[f"{state_dict}_update"]["text"])})
 
 
 def update_request_state() -> None:
@@ -122,7 +123,8 @@ def get_json_editor_buttons() -> List[dict]:
             "feather": "X",
             "hasText": True,
             "alwaysOn": True,
-            "commands": ["selectall", "del", ["insertstring", "{\n\n\n\n}"]],
+            "commands": ["selectall", "del", ["insertstring", "{\n\n\n\n}"], "save-state",
+                         ["response", "saved"]],
             "style": {"top": "0rem", "right": "0.4rem"}
         },
     ]
@@ -169,15 +171,16 @@ def send_request(force: bool = False) -> None:
 
         response = None
         try:
-            response = requests_utility.REQUEST_METHODS[st.session_state["CACHE"]["method"]](
-                url=st.session_state["CACHE"]["url"],
-                params=st.session_state["CACHE"]["params"] if st.session_state["CACHE"].get(
-                    "params") else None,
-                headers=st.session_state["CACHE"]["headers"] if st.session_state["CACHE"].get(
-                    "headers") else None,
-                json=st.session_state["CACHE"]["json"] if st.session_state["CACHE"].get(
-                    "json") else None
-            )
+            with st.spinner("Fetching data ..."):
+                response = requests_utility.REQUEST_METHODS[st.session_state["CACHE"]["method"]](
+                    url=st.session_state["CACHE"]["url"],
+                    params=st.session_state["CACHE"]["params"] if st.session_state["CACHE"].get(
+                        "params") else None,
+                    headers=st.session_state["CACHE"]["headers"] if st.session_state["CACHE"].get(
+                        "headers") else None,
+                    json=st.session_state["CACHE"]["json"] if st.session_state["CACHE"].get(
+                        "json") else None
+                )
             response_status = response.status_code
             response_status_message = f"Status description: {status_codes[response_status]}"
             response_headers = dict(response.headers)
@@ -254,17 +257,26 @@ def run_page() -> None:
                 st.session_state["CACHE"], cfg.PATHS.FRONTEND_CACHE)
     state_preview = st.sidebar.empty()
 
+    previous_header = {"placeholder": "header"}
+    previous_content_length = -1
     while True:
-        response_status.subheader(
-            f"Response Status {st.session_state['CACHE']['response_status']}")
-        response_status_message.write(
-            st.session_state['CACHE']["response_status_message"])
-        response_headers.json(st.session_state['CACHE']["response_headers"])
-        if isinstance(st.session_state['CACHE']["response"], dict):
-            response.json(st.session_state['CACHE']["response"])
-        else:
-            response.write(st.session_state['CACHE']["response"])
-        state_preview.json(dict(st.session_state))
+        if previous_header != st.session_state['CACHE']["response_headers"] or previous_content_length != len(st.session_state['CACHE']["response"]):
+            if st.session_state['CACHE']["response_status_message"] != "No request sent." or previous_header == {"placeholder": "header"}:
+                print("New data, reloading ...")
+                previous_header = st.session_state['CACHE']["response_headers"]
+                previous_content_length = len(
+                    st.session_state['CACHE']["response"])
+                response_status.subheader(
+                    f"Response Status {st.session_state['CACHE']['response_status']}")
+                response_status_message.write(
+                    st.session_state['CACHE']["response_status_message"])
+                response_headers.json(
+                    st.session_state['CACHE']["response_headers"])
+                if isinstance(st.session_state['CACHE']["response"], dict):
+                    response.json(st.session_state['CACHE']["response"])
+                else:
+                    response.write(st.session_state['CACHE']["response"])
+                state_preview.json(dict(st.session_state))
         sleep(1)
 
 
