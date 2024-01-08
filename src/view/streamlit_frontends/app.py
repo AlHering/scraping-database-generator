@@ -64,9 +64,9 @@ def load_state() -> None:
                 st.session_state["CACHE"][field] = state[field]
 
 
-def update_state_dictionary(field: str, update: dict) -> None:
+def update_bound_state_dictionary(field: str, update: dict) -> None:
     """
-    Function for updating a state managed dictionary.
+    Function for updating a bound state managed dictionary.
     :param field: State field of dictionary.
     :param update: Streamlit update dictionary.
     """
@@ -91,14 +91,20 @@ def update_state_dictionary(field: str, update: dict) -> None:
     update["deleted_rows"] = []
 
 
-def trigger_state_dictionary_update(field: str) -> None:
+def trigger_state_dictionary_update() -> None:
     """
     Function for triggering an state dictionary update.
-    :param field: State field.
     """
+    update_state_cache({
+        "method": st.session_state["method_update"],
+        "url": st.session_state["url_update"]
+    })
     for state_dicts in ["headers", "parameters"]:
-        update_state_dictionary(
+        update_bound_state_dictionary(
             state_dicts, st.session_state[f"{state_dicts}_update"])
+    update_state_cache({
+        "json": {} if st.session_state.get("json_update") is None else st.session_state["json_update"]
+    })
 
 
 def update_state_cache(update: dict) -> None:
@@ -169,13 +175,21 @@ def key_value_dataframe_from_dict(data: dict) -> pd.DataFrame:
     return pd.DataFrame([{"key": key, "value": value} for key, value in data.items()], columns=["value"], index=["key"])
 
 
+def update_request_state() -> None:
+    """
+    Function for updating request state before sending off requests.
+    """
+    print("="*10 + "BEFORE" + "="*10)
+    print(st.session_state["CACHE"])
+    trigger_state_dictionary_update()
+
+
 def send_request(force: bool = False) -> None:
     """
     Function for sending off request.
     :param force: Force resending request.
     """
     if force or (st.session_state.get("url_update") and st.session_state["CACHE"]["url"] != st.session_state["url_update"]):
-
         response_content = {}
         response_status = -1
         response_status_message = "An unknown error appeared"
