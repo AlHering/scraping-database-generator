@@ -119,14 +119,7 @@ def get_json_editor_buttons() -> List[dict]:
     :return: Buttons as list of dictionaries.
     """
     return [
-        {
-            "name": "copy",
-            "feather": "Copy",
-            "hasText": True,
-            "alwaysOn": True,
-            "commands": ["copyAll"],
-            "style": {"top": "0rem", "right": "0.4rem"}
-        },
+
         {
             "name": "save",
             "feather": "Save",
@@ -140,8 +133,24 @@ def get_json_editor_buttons() -> List[dict]:
                     ]
             ],
             "response": "saved",
+            "style": {"top": "0rem", "right": "9.6rem"}
+        },
+        {
+            "name": "copy",
+            "feather": "Copy",
+            "hasText": True,
+            "alwaysOn": True,
+            "commands": ["copyAll"],
             "style": {"top": "0rem", "right": "5rem"}
-        }
+        },
+        {
+            "name": "clear",
+            "feather": "X",
+            "hasText": True,
+            "alwaysOn": True,
+            "commands": ["selectall", "del", ["insertstring", "{\n\n\n\n}"]],
+            "style": {"top": "0rem", "right": "0.4rem"}
+        },
     ]
 
 
