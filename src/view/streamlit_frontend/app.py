@@ -289,7 +289,7 @@ def handle_response_data(url: str, response_data: dict) -> None:
             os.remove(cfg.PATHS.RESPONSE_PATH)
 
     # Create individual name
-    response_name = f"{time_utility.get_timestamp()}_STATUS{response_status}_{urlparse(url).netloc}"
+    response_name = f"{time_utility.get_timestamp()}_STATUS{response_data['response_status']}_{urlparse(url).netloc}"
     response_data["name"] = response_name
 
     # Save response to disk and cache
