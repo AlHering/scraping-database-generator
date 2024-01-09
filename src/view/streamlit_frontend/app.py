@@ -281,6 +281,7 @@ if __name__ == "__main__":
 
     st.title("API Workbench")
 
+    render_sidebar_control_header()
     column_splitter_kwargs = {"spec": [0.5, 0.5], "gap": "medium"}
 
     left, right = st.columns(
