@@ -258,7 +258,7 @@ if __name__ == "__main__":
         with st.spinner("Saving State..."):
             json_utility.save(
                 st.session_state["CACHE"], cfg.PATHS.FRONTEND_CACHE)
-    clear_cache_button = sidebar_left.button("Clear state")
+    clear_cache_button = sidebar_right.button("Clear state")
     if clear_cache_button:
         with st.spinner("Clearing State..."):
             st.session_state["CACHE"] = copy.deepcopy(json_utility.load(
