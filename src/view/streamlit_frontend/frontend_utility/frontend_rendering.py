@@ -172,3 +172,33 @@ def render_request_input_form(parent_widget: Any) -> Any:
                     buttons=get_json_editor_buttons()
                     )
     return submitted
+
+
+def render_response_data(parent_widget: Any) -> None:
+    """
+    Function for rendering response data.
+    :param parent_widget: Parent widget.
+    """
+    data_rendering_spinner = parent_widget.empty()
+    response_status = parent_widget.empty()
+    response_status_message = parent_widget.empty()
+    parent_widget.divider()
+    parent_widget.markdown("##### Response Header: ")
+    response_headers = parent_widget.empty()
+    parent_widget.markdown("##### Response Content: ")
+    response = parent_widget.empty()
+
+    # TODO: Check rendering spinner -> seems to have no effect
+    with data_rendering_spinner, st.spinner("Rendering data ..."):
+        data = st.session_state["CACHE"]["responses"][st.session_state["CACHE"]
+                                                      ["current_response"]]
+        response_status.subheader(
+            f"Response Status {data['response_status']}")
+        response_status_message.write(
+            data["response_status_message"])
+        response_headers.json(
+            data["response_headers"])
+        if isinstance(data["response"], dict):
+            response.json(data["response"])
+        else:
+            response.write(data["response"])

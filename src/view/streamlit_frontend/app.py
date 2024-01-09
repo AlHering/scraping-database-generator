@@ -16,7 +16,7 @@ import streamlit as st
 from src.configuration import configuration as cfg
 from src.utility.bronze import json_utility, requests_utility, time_utility
 from src.view.streamlit_frontend.frontend_utility.state_handling import populate_state_cache
-from src.view.streamlit_frontend.frontend_utility.frontend_rendering import render_request_input_form, render_sidebar_control_header, render_sidebar_response_list
+from src.view.streamlit_frontend.frontend_utility.frontend_rendering import render_request_input_form, render_response_data, render_sidebar_control_header, render_sidebar_response_list
 
 
 ###################
@@ -139,32 +139,10 @@ if __name__ == "__main__":
     submitted = render_request_input_form(left)
 
     data_fetching_spinner = right.empty()
-    data_rendering_spinner = right.empty()
-    response_status = right.empty()
-    response_status_message = right.empty()
-    right.divider()
-    right.markdown("##### Response Header: ")
-    response_headers = right.empty()
-    right.markdown("##### Response Content: ")
-    response = right.empty()
-
     if submitted:
         st.session_state["first_sent"] = 1
         with data_fetching_spinner, st.spinner("Fetching data ..."):
             kwargs = prepare_request_input()
             send_request(**kwargs)
-
-    with data_rendering_spinner, st.spinner("Rendering data ..."):
-        data = st.session_state["CACHE"]["responses"][st.session_state["CACHE"]
-                                                      ["current_response"]]
-        response_status.subheader(
-            f"Response Status {data['response_status']}")
-        response_status_message.write(
-            data["response_status_message"])
-        response_headers.json(
-            data["response_headers"])
-        if isinstance(data["response"], dict):
-            response.json(data["response"])
-        else:
-            response.write(data["response"])
+    render_response_data(right)
     render_sidebar_response_list()
