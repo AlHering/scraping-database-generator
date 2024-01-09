@@ -96,9 +96,10 @@ def handle_response_data(url: str, response_data: dict) -> None:
     while len(st.session_state["CACHE"]["responses"]) >= cfg.KEEP_RESPONSES:
         to_remove = st.session_state["CACHE"]["responses"].pop(
             list(st.session_state["CACHE"]["responses"].keys())[0])
-        file_name = f"{to_remove['name']}.json"
-        if os.path.exists(cfg.PATHS.RESPONSE_PATH):
-            os.remove(cfg.PATHS.RESPONSE_PATH)
+        path = os.path.join(cfg.PATHS.RESPONSE_PATH,
+                            f"{to_remove['name']}.json")
+        if os.path.exists(path):
+            os.remove(path)
 
     # Create individual name
     response_name = f"{time_utility.get_timestamp()}_STATUS{response_data['response_status']}_{urlparse(url).netloc}"
