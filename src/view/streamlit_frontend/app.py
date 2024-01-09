@@ -257,7 +257,8 @@ if __name__ == "__main__":
     clear_cache_button = sidebar_left.button("Clear state")
     if clear_cache_button:
         with st.spinner("Clearing State..."):
-            st.session_state["CACHE"] = copy.deepcopy(DEFAULT_CACHE)
+            st.session_state["CACHE"] = copy.deepcopy(json_utility.load(
+                cfg.PATHS.FRONTEND_DEFAULT_CACHE))
     st.sidebar.divider()
 
     response_status = right.empty()
