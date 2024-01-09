@@ -26,6 +26,21 @@ import requests
 ###################
 
 
+def populate_state_cache() -> None:
+    """
+    Function for populating state cache.
+    """
+    if not os.path.exists(cfg.PATHS.RESPONSE_PATH):
+        os.makedirs(cfg.PATHS.RESPONSE_PATH)
+    with st.spinner("Loading State..."):
+        if os.path.exists(cfg.PATHS.FRONTEND_CACHE):
+            st.session_state["CACHE"] = json_utility.load(
+                cfg.PATHS.FRONTEND_CACHE)
+        else:
+            st.session_state["CACHE"] = json_utility.load(
+                cfg.PATHS.FRONTEND_DEFAULT_CACHE)
+
+
 def update_state_cache(update: dict) -> None:
     """
     Function for updating state cache.
@@ -176,17 +191,9 @@ if __name__ == "__main__":
         page_icon=":books:",
         layout="wide"
     )
-    if not os.path.exists(cfg.PATHS.RESPONSE_PATH):
-        os.makedirs(cfg.PATHS.RESPONSE_PATH)
 
     if "CACHE" not in st.session_state:
-        with st.spinner("Loading State..."):
-            if os.path.exists(cfg.PATHS.FRONTEND_CACHE):
-                st.session_state["CACHE"] = json_utility.load(
-                    cfg.PATHS.FRONTEND_CACHE)
-            else:
-                st.session_state["CACHE"] = json_utility.load(
-                    cfg.PATHS.FRONTEND_DEFAULT_CACHE)
+        populate_state_cache()
         st.rerun()
 
     st.title("API Workbench")
