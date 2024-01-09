@@ -17,7 +17,7 @@ import streamlit as st
 from code_editor import code_editor
 from src.configuration import configuration as cfg
 from src.utility.bronze import json_utility, requests_utility, time_utility
-from src.utility.silver.file_system_utility import safely_create_path
+from src.utility.silver.file_system_utility import safely_create_path, get_all_files
 import requests
 
 
@@ -152,7 +152,11 @@ def send_request(method: str, url: str, headers: Optional[dict] = None, params: 
             response_content = response.text
 
     while len(st.session_state["CACHE"]["responses"]) >= cfg.KEEP_RESPONSES:
-        st.session_state["CACHE"]["responses"] = st.session_state["CACHE"]["responses"][1:]
+        to_remove = st.session_state["CACHE"]["responses"].pop(
+            list(st.session_state["CACHE"]["responses"].keys())[0])
+        file_name = f"{to_remove['name']}.json"
+        if os.path.exists(cfg.PATHS.RESPONSE_PATH):
+            os.remove(cfg.PATHS.RESPONSE_PATH)
     data = {"response": response_content,
             "response_status": response_status,
             "response_status_message": response_status_message,
@@ -261,12 +265,13 @@ if __name__ == "__main__":
                 cfg.PATHS.FRONTEND_DEFAULT_CACHE))
     st.sidebar.divider()
 
+    spinner_placeholder = right.empty()
     response_status = right.empty()
     response_status_message = right.empty()
     response_status.subheader(
         f"Response Status {-1}")
     response_status_message.write(
-        ["No request sent.", "Waiting for new request/response."][st.session_state.get("first_sent", 0)])
+        ["No request sent.", "Changes were made, waiting for new request..."][st.session_state.get("first_sent", 0)])
     right.divider()
     right.markdown("##### Response Header: ")
     response_headers = right.empty()
@@ -277,7 +282,7 @@ if __name__ == "__main__":
 
     if submitted:
         st.session_state["first_sent"] = 1
-        with st.spinner("Fetching data ..."):
+        with spinner_placeholder, st.spinner("Fetching data ..."):
             kwargs = {
                 "url": st.session_state["url_update"],
                 "method": st.session_state["method_update"]
