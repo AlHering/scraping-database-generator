@@ -90,17 +90,20 @@ def render_sidebar_control_header() -> None:
     """
     Function for rendering the sidebar control header.
     """
-    sidebar_right, sidebar_left = st.sidebar.columns([0.5, 0.5])
-    save_cache_button = sidebar_left.button("Save state")
-    if save_cache_button:
+    sidebar_left, sidebar_right = st.sidebar.columns([0.5, 0.5])
+    if sidebar_right.button(":floppy_disk: Save state"):
         with st.spinner("Saving State..."):
             json_utility.save(
                 st.session_state["CACHE"], cfg.PATHS.FRONTEND_CACHE)
-    clear_cache_button = sidebar_right.button("Clear state")
-    if clear_cache_button:
+    if sidebar_left.button(":cd: Clear state"):
         with st.spinner("Clearing State..."):
             st.session_state["CACHE"] = copy.deepcopy(json_utility.load(
                 cfg.PATHS.FRONTEND_DEFAULT_CACHE))
+    if st.sidebar.button(":wastebasket: Delete all responses"):
+        with st.spinner("Deleting responses..."):
+            for response_name in st.session_state["CACHE"]["responses"]:
+                if response_name != "default":
+                    delete_response(response_name)
     st.sidebar.divider()
 
 
