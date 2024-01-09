@@ -212,6 +212,23 @@ def render_request_input_form(parent_widget: Any) -> Any:
     return submitted
 
 
+def prepare_request_input() -> dict:
+    """
+    Function for preparing request input.
+    :return: Request kwargs.
+    """
+    kwargs = {
+        "url": st.session_state["url_update"],
+        "method": st.session_state["method_update"]
+    }
+    for field in ["headers", "params", "json_payload"]:
+        try:
+            kwargs[field] = json.loads(
+                st.session_state[f"{field}_update"]["text"])
+        except Exception:
+            kwargs[field] = None
+
+
 def send_request(method: str, url: str, headers: Optional[dict] = None, params: Optional[dict] = None, json_payload: Optional[dict] = None) -> None:
     """
     Function for sending off request.
@@ -269,24 +286,24 @@ def send_request(method: str, url: str, headers: Optional[dict] = None, params: 
 
 
 if __name__ == "__main__":
+    # Basic metadata
     st.set_page_config(
         page_title="Scraping Database Generator",
         page_icon=":books:",
         layout="wide"
     )
 
+    # Cache and config
     if "CACHE" not in st.session_state:
         populate_state_cache()
         st.rerun()
-
-    st.title("API Workbench")
-
-    render_sidebar_control_header()
     column_splitter_kwargs = {"spec": [0.5, 0.5], "gap": "medium"}
 
+    # Main page
+    st.title("API Workbench")
+    render_sidebar_control_header()
     left, right = st.columns(
         **column_splitter_kwargs)
-
     submitted = render_request_input_form(left)
 
     spinner_placeholder = right.empty()
@@ -307,17 +324,9 @@ if __name__ == "__main__":
     if submitted:
         st.session_state["first_sent"] = 1
         with spinner_placeholder, st.spinner("Fetching data ..."):
-            kwargs = {
-                "url": st.session_state["url_update"],
-                "method": st.session_state["method_update"]
-            }
-            for field in ["headers", "params", "json_payload"]:
-                try:
-                    kwargs[field] = json.loads(
-                        st.session_state[f"{field}_update"]["text"])
-                except Exception:
-                    kwargs[field] = None
+            kwargs = prepare_request_input()
             send_request(**kwargs)
+
             data = st.session_state["CACHE"]["responses"][st.session_state["CACHE"]
                                                           ["current_response"]]
             response_status.subheader(
