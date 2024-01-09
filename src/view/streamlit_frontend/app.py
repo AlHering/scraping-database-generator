@@ -111,6 +111,11 @@ def handle_response_data(url: str, response_data: dict) -> None:
     st.session_state["CACHE"]["current_response"] = response_name
 
 
+###################
+# Entrypoint
+###################
+
+
 if __name__ == "__main__":
     # Basic metadata
     st.set_page_config(
