@@ -9,7 +9,7 @@ import copy
 import json
 from typing import Any, List
 import streamlit as st
-from streamlit_extras.stylable_container import stylable_container
+
 from code_editor import code_editor
 from src.configuration import configuration as cfg
 from src.utility.bronze import json_utility, requests_utility
@@ -134,12 +134,41 @@ def render_sidebar_response_list() -> None:
                          use_container_width=True)
 
 
+def render_json_input(parent_widget: Any, cache_field: str) -> None:
+    """
+    Function for rendering JSON input.
+    :param parent_widget: Parent widget.
+    :param cache_field: State cache field.
+    """
+    parent_widget.text(
+        """(CTRL+ENTER or "save" to confirm)""")
+    with parent_widget.empty():
+        content = st.session_state["CACHE"].get(cache_field)
+        code_editor(json.dumps({} if content is None else content).replace("{", "{\n\n").replace("}", "\n\n}"),
+                    key=f"{cache_field}_update",
+                    lang="json",
+                    allow_reset=True,
+                    options={"wrap": True},
+                    buttons=get_json_editor_buttons()
+                    )
+    if st.session_state.get("show_input_state_toggle"):
+        params_state = st.session_state.get(
+            f"{cache_field}_update", {"text": "{\n\n}"})
+        parent_widget.text_area("Current state:",
+                                key=f"{cache_field}_state",
+                                height=160,
+                                disabled=True,
+                                value=params_state["text"] if params_state else "{\n\n\n\n}")
+
+
 def render_request_input_form(parent_widget: Any) -> Any:
     """
     Function for rendering request input form.
     :param parent_widget: Parent widget.
     :return: Submit button widget.
     """
+    parent_widget.toggle("Show input state",
+                         key="show_input_state_toggle")
     request_form = parent_widget.form("request_update")
 
     sending_line_left, sending_line_middle, sending_line_right = request_form.columns(
@@ -161,51 +190,14 @@ def render_request_input_form(parent_widget: Any) -> Any:
         "Send")
     request_form.divider()
     request_form.markdown("##### Request Headers: ")
-    request_form.text(
-        """(Confirm with CTRL+ENTER or by pressing "save")""")
-    with request_form.empty():
-        content = st.session_state["CACHE"].get("headers")
-        code_editor(json.dumps({} if content is None else content).replace("{", "{\n\n").replace("}", "\n\n}"),
-                    key="headers_update",
-                    lang="json",
-                    allow_reset=True,
-                    options={"wrap": True},
-                    buttons=get_json_editor_buttons()
-                    )
+    render_json_input(request_form, "headers")
     request_form.divider()
     request_form.markdown("##### Request Parameters: ")
-    params_left, params_right = request_form.columns([0.5, 0.5])
-    params_left.text(
-        """(CTRL+ENTER or "save" to confirm)""")
-    with params_left.empty():
-        content = st.session_state["CACHE"].get("params")
-        print(content)
-        print(st.session_state.get("params_update"))
-        code_editor(json.dumps({} if content is None else content).replace("{", "{\n\n").replace("}", "\n\n}"),
-                    key="params_update",
-                    lang="json",
-                    allow_reset=True,
-                    options={"wrap": True},
-                    buttons=get_json_editor_buttons()
-                    )
-    params_right.text_area("Current state:",
-                           height=150,
-                           disabled=True,
-                           value=st.session_state.get("params_update", {"text": "{\n\n}"})["text"])
+    render_json_input(request_form, "params")
     request_form.divider()
     request_form.markdown(
         "##### Request JSON Payload:")
-    request_form.text(
-        """(Confirm with CTRL+ENTER or by pressing "save")""")
-    with request_form.empty():
-        content = st.session_state["CACHE"].get("json_payload")
-        code_editor(json.dumps({} if content is None else content).replace("{", "{\n\n").replace("}", "\n\n}"),
-                    key="json_payload_update",
-                    lang="json",
-                    allow_reset=True,
-                    options={"wrap": True},
-                    buttons=get_json_editor_buttons()
-                    )
+    render_json_input(request_form, "json_payload")
     return submitted
 
 
