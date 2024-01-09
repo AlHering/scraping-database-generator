@@ -39,7 +39,7 @@ def update_state_cache(update: dict) -> None:
 
 def remove_state_cache_element(field_path: List[Any]) -> None:
     """
-    Function for updating state cache.
+    Function for removing a target element from cache.
     :param field_path: Field path for traversing cache to target element.
     """
     target = field_path[-1]
@@ -48,6 +48,17 @@ def remove_state_cache_element(field_path: List[Any]) -> None:
     for key in field_path:
         data = data[key]
     data.pop(target)
+
+
+def delete_response(response_name: str) -> None:
+    """
+    Function for deleting a response.
+    :param response_name: Target response name.
+    """
+    remove_state_cache_element(["responses", response_name])
+    path = os.path.join(cfg.PATHS.RESPONSE_PATH, f"{response_name}.json")
+    if os.path.exists(path):
+        os.remove(path)
 
 
 def trigger_state_dictionary_update() -> None:
