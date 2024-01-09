@@ -144,5 +144,6 @@ if __name__ == "__main__":
         with data_fetching_spinner, st.spinner("Fetching data ..."):
             kwargs = prepare_request_input()
             send_request(**kwargs)
+
     render_response_data(right)
     render_sidebar_response_list()
