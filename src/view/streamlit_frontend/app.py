@@ -227,6 +227,7 @@ def prepare_request_input() -> dict:
                 st.session_state[f"{field}_update"]["text"])
         except Exception:
             kwargs[field] = None
+    return kwargs
 
 
 def send_request(method: str, url: str, headers: Optional[dict] = None, params: Optional[dict] = None, json_payload: Optional[dict] = None) -> None:
