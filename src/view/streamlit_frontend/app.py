@@ -83,6 +83,19 @@ def update_request_state() -> None:
 ###################
 
 
+def convert_response_name_to_label(response_name: str) -> str:
+    """
+    Function for converting response name to a label text.
+    :param response_name: Response name.
+    :return: Label text.
+    """
+    time_text, rest_text = response_name.split("_STATUS")
+    time_text = time_text.replace("_", " ").replace("-", ":")
+    status_text, *url_text = rest_text.split("_")
+    url_text = "_".join(url_text)
+    return f"{time_text} Status: {status_text}\n{url_text}"
+
+
 def get_json_editor_buttons() -> List[dict]:
     """
     Function for acquiring json payload code editor buttons.
@@ -145,6 +158,19 @@ def render_sidebar_control_header() -> None:
             st.session_state["CACHE"] = copy.deepcopy(json_utility.load(
                 cfg.PATHS.FRONTEND_DEFAULT_CACHE))
     st.sidebar.divider()
+
+
+def render_sidebar_response_list() -> None:
+    """
+    Function for rendering the sidebar response list.
+    """
+    for response_name in st.session_state["CACHE"]["responses"]:
+        if response_name != "default":
+            st.sidebar.button(convert_response_name_to_label(response_name),
+                              on_click=lambda x: update_state_cache({
+                                  "current_response": x
+                              }),
+                              args=(response_name, ))
 
 
 def render_request_input_form(parent_widget: Any) -> Any:
