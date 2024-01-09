@@ -85,10 +85,7 @@ def reload_request(response_name: str) -> None:
         request_field = "request_" + "_".join(field.split("_")[:-1])
         st.session_state[field] = data[request_field]
     for field in ["headers_update", "params_update", "json_payload_update"]:
-        request_field = "request_" + "_".join(field.split("_")[:-1])
-        if data[request_field]:
-            st.session_state[field] = {"text": json.dumps(
-                data[request_field]).replace("{", "{\n\n").replace("}", "\n\n}")}
+        st.session_state.pop(field)
 
 
 def trigger_state_dictionary_update() -> None:
