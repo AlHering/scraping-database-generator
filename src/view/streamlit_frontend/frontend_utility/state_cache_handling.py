@@ -43,7 +43,7 @@ def remove_state_cache_element(field_path: List[Any]) -> None:
     :param field_path: Field path for traversing cache to target element.
     """
     target = field_path[-1]
-    field_path = field_path.remove(target)
+    field_path.remove(target)
     data = st.session_state["CACHE"]
     for key in field_path:
         data = data[key]
@@ -55,6 +55,10 @@ def delete_response(response_name: str) -> None:
     Function for deleting a response.
     :param response_name: Target response name.
     """
+    if response_name == st.session_state["CACHE"]["current_response"]:
+        update_state_cache({
+            "current_response": "default"
+        })
     remove_state_cache_element(["responses", response_name])
     path = os.path.join(cfg.PATHS.RESPONSE_PATH, f"{response_name}.json")
     if os.path.exists(path):

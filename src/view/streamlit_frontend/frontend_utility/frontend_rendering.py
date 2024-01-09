@@ -101,9 +101,10 @@ def render_sidebar_control_header() -> None:
                 cfg.PATHS.FRONTEND_DEFAULT_CACHE))
     if st.sidebar.button(":wastebasket: Delete all responses"):
         with st.spinner("Deleting responses..."):
-            for response_name in st.session_state["CACHE"]["responses"]:
+            for response_name in list(st.session_state["CACHE"]["responses"].keys()):
                 if response_name != "default":
                     delete_response(response_name)
+        st.rerun()
     st.sidebar.divider()
 
 
@@ -121,12 +122,12 @@ def render_sidebar_response_list() -> None:
             right.button(":incoming_envelope:",
                          key=f"reload_{response_name}",
                          on_click=reload_request,
-                         args=(response_name),
+                         args=(response_name, ),
                          use_container_width=True)
             right.button(":wastebasket:",
                          key=f"delete_{response_name}",
                          on_click=delete_response,
-                         args=(response_name),
+                         args=(response_name, ),
                          use_container_width=True)
 
 
