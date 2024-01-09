@@ -341,41 +341,39 @@ if __name__ == "__main__":
 
     # Main page
     st.title("API Workbench")
+    st.session_state["current_response"] = "default"
     render_sidebar_control_header()
+    render_sidebar_response_list()
     left, right = st.columns(
         **column_splitter_kwargs)
     submitted = render_request_input_form(left)
 
-    spinner_placeholder = right.empty()
+    data_fetching_spinner = right.empty()
+    data_rendering_spinner = right.empty()
     response_status = right.empty()
     response_status_message = right.empty()
-    response_status.subheader(
-        f"Response Status {-1}")
-    response_status_message.write(
-        ["No request sent.", "Changes were made, waiting for new request..."][st.session_state.get("first_sent", 0)])
     right.divider()
     right.markdown("##### Response Header: ")
     response_headers = right.empty()
-    response_headers.json({})
     right.markdown("##### Response Content: ")
     response = right.empty()
-    response.json({})
 
     if submitted:
         st.session_state["first_sent"] = 1
-        with spinner_placeholder, st.spinner("Fetching data ..."):
+        with data_fetching_spinner, st.spinner("Fetching data ..."):
             kwargs = prepare_request_input()
             send_request(**kwargs)
 
-            data = st.session_state["CACHE"]["responses"][st.session_state["CACHE"]
-                                                          ["current_response"]]
-            response_status.subheader(
-                f"Response Status {data['response_status']}")
-            response_status_message.write(
-                data["response_status_message"])
-            response_headers.json(
-                data["response_headers"])
-            if isinstance(data["response"], dict):
-                response.json(data["response"])
-            else:
-                response.write(data["response"])
+    with data_rendering_spinner, st.spinner("Rendering data ..."):
+        data = st.session_state["CACHE"]["responses"][st.session_state["CACHE"]
+                                                      ["current_response"]]
+        response_status.subheader(
+            f"Response Status {data['response_status']}")
+        response_status_message.write(
+            data["response_status_message"])
+        response_headers.json(
+            data["response_headers"])
+        if isinstance(data["response"], dict):
+            response.json(data["response"])
+        else:
+            response.write(data["response"])
