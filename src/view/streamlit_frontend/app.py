@@ -10,12 +10,13 @@ import copy
 import json
 import traceback
 from time import sleep
+from urllib.parse import urlparse
 from http.client import responses as status_codes
-from typing import Any, Callable, Union, List, get_origin, get_args
+from typing import Any, Callable, Union, Optional, List, get_origin, get_args
 import streamlit as st
 from code_editor import code_editor
 from src.configuration import configuration as cfg
-from src.utility.bronze import json_utility, requests_utility
+from src.utility.bronze import json_utility, requests_utility, time_utility
 from src.utility.silver.file_system_utility import safely_create_path
 import requests
 
@@ -23,6 +24,24 @@ import requests
 ###################
 # State handling
 ###################
+
+
+DEFAULT_CACHE = {
+    "method": "GET",
+    "url": "",
+    "headers": {},
+    "params": {},
+    "json_payload": {},
+    "responses": {
+        "default": {
+            "response_status": -1,
+            "response_status_message": "No request sent.",
+            "response_headers": {},
+            "response": {}
+        }
+    },
+    "current_response": "default"
+}
 
 
 def update_state_cache(update: dict) -> None:
@@ -108,73 +127,61 @@ def get_json_editor_buttons() -> List[dict]:
     ]
 
 
-def insert_json_block(parent_widget: Any, cache_field: str) -> None:
-    """
-    Function for inserting an json-based code block.
-    :param parent_widget: Widget to insert code block under.
-    :param cache_field: Bound state cache field.
-    """
-    with parent_widget.empty():
-        try:
-            content = json.dumps(
-                st.session_state["CACHE"][cache_field], indent=2)
-            st.session_state["CACHE"][cache_field] = json.loads(
-                code_editor("{\n\n\n\n}" if content == "{}" else content,
-                            key=f"{cache_field}_update",
-                            lang="json",
-                            allow_reset=True,
-                            options={"wrap": True},
-                            buttons=get_json_editor_buttons()
-                            )["text"])
-        except json.JSONDecodeError:
-            st.session_state["CACHE"][cache_field] = {}
-
-
 ###################
 # Main app functionality
 ###################
 
 
-def send_request(force: bool = False) -> None:
+def send_request(method: str, url: str, headers: Optional[dict] = None, params: Optional[dict] = None, json_payload: Optional[dict] = None) -> None:
     """
     Function for sending off request.
-    :param force: Force resending request.
+    :param method: Request method.
+    :param url: Target URL.
+    :param headers: Request headers.
+        Defaults to None.
+    :param params: Request parameters.
+        Defaults to None.
+    :param json_payload: JSON payload.
+        Defaults to None.
     """
-    if force or (st.session_state.get("url_update") and st.session_state["CACHE"]["url"] != st.session_state["url_update"]):
-        update_request_state()
-        response_content = {}
-        response_status = -1
-        response_status_message = "An unknown error appeared"
-        response_headers = {}
+    response_content = {}
+    response_status = -1
+    response_status_message = "An unknown error appeared"
+    response_headers = {}
 
-        response = None
+    response = None
+    try:
+        response = requests_utility.REQUEST_METHODS[method](
+            url=url,
+            params=params,
+            headers=headers,
+            json=json_payload
+        )
+        response_status = response.status_code
+        response_status_message = f"Status description: {status_codes[response_status]}"
+        response_headers = dict(response.headers)
+    except requests.exceptions.RequestException as ex:
+        response_status_message = f"Exception '{ex}' appeared.\n\nTrace:{traceback.format_exc()}"
+
+    if response is not None:
         try:
-            with st.spinner("Fetching data ..."):
-                response = requests_utility.REQUEST_METHODS[st.session_state["CACHE"]["method"]](
-                    url=st.session_state["CACHE"]["url"],
-                    params=st.session_state["CACHE"]["params"] if st.session_state["CACHE"].get(
-                        "params") else None,
-                    headers=st.session_state["CACHE"]["headers"] if st.session_state["CACHE"].get(
-                        "headers") else None,
-                    json=st.session_state["CACHE"]["json"] if st.session_state["CACHE"].get(
-                        "json") else None
-                )
-            response_status = response.status_code
-            response_status_message = f"Status description: {status_codes[response_status]}"
-            response_headers = dict(response.headers)
-        except requests.exceptions.RequestException as ex:
-            response_status_message = f"Exception '{ex}' appeared.\n\nTrace:{traceback.format_exc()}"
+            response_content = response.json()
+        except json.decoder.JSONDecodeError:
+            response_content = response.text
 
-        if response is not None:
-            try:
-                response_content = response.json()
-            except json.decoder.JSONDecodeError:
-                response_content = response.text
+    while len(st.session_state["CACHE"]["responses"]) >= cfg.KEEP_RESPONSES:
+        st.session_state["CACHE"]["responses"] = st.session_state["CACHE"]["responses"][1:]
+    data = {"response": response_content,
+            "response_status": response_status,
+            "response_status_message": response_status_message,
+            "response_headers": response_headers}
 
-        update_state_cache({"response": response_content,
-                            "response_status": response_status,
-                            "response_status_message": response_status_message,
-                            "response_headers": response_headers})
+    response_name = f"{time_utility.get_timestamp()}_STATUS{response_status}_{urlparse(url).netloc}"
+    data["name"] = response_name
+    json_utility.save(data, os.path.join(cfg.PATHS.RESPONSE_PATH,
+                      f"{response_name}.json"))
+    st.session_state["CACHE"]["responses"][response_name] = data
+    st.session_state["CACHE"]["current_response"] = response_name
 
 
 if __name__ == "__main__":
@@ -183,23 +190,15 @@ if __name__ == "__main__":
         page_icon=":books:",
         layout="wide"
     )
+    if not os.path.exists(cfg.PATHS.RESPONSE_PATH):
+        os.makedirs(cfg.PATHS.RESPONSE_PATH)
 
     with st.spinner("Loading State..."):
         if os.path.exists(cfg.PATHS.FRONTEND_CACHE):
             st.session_state["CACHE"] = json_utility.load(
                 cfg.PATHS.FRONTEND_CACHE)
         else:
-            st.session_state["CACHE"] = {
-                "method": "GET",
-                "url": "",
-                "headers": {},
-                "params": {},
-                "json": {},
-                "response": {},
-                "response_status_message": "No request sent.",
-                "response_status": -1,
-                "response_headers": {}
-            }
+            st.session_state["CACHE"] = copy.deepcopy(DEFAULT_CACHE)
 
     st.title("API Workbench")
 
@@ -224,43 +223,95 @@ if __name__ == "__main__":
                                        "url_update", ""))
     sending_line_right.markdown("## ")
 
-    sending_line_right.form_submit_button(
-        "Send", on_click=lambda: send_request(True))
+    submitted = sending_line_right.form_submit_button(
+        "Send")
     request_form.divider()
     request_form.markdown("##### Request Headers: ")
-    insert_json_block(request_form, "headers")
+    request_form.text(
+        """(Confirm with CTRL+ENTER or by pressing "save")""")
+    with request_form.empty():
+        code_editor("{\n\n\n\n}",
+                    key="headers_update",
+                    lang="json",
+                    allow_reset=True,
+                    options={"wrap": True},
+                    buttons=get_json_editor_buttons()
+                    )
     request_form.divider()
     request_form.markdown("##### Request Parameters: ")
-    insert_json_block(request_form, "params")
+    request_form.text(
+        """(Confirm with CTRL+ENTER or by pressing "save")""")
+    with request_form.empty():
+        code_editor("{\n\n\n\n}",
+                    key="params_update",
+                    lang="json",
+                    allow_reset=True,
+                    options={"wrap": True},
+                    buttons=get_json_editor_buttons()
+                    )
     request_form.divider()
     request_form.markdown(
         "##### Request JSON Payload:")
     request_form.text(
         """(Confirm with CTRL+ENTER or by pressing "save")""")
-    insert_json_block(request_form, "json")
-    response_status = right.empty()
-    response_status_message = right.empty()
-    right.divider()
-    right.markdown("##### Response Header: ")
-    response_headers = right.empty()
-    right.markdown("##### Response Content: ")
-    response = right.empty()
+    with request_form.empty():
+        code_editor("{\n\n\n\n}",
+                    key="json_payload_update",
+                    lang="json",
+                    allow_reset=True,
+                    options={"wrap": True},
+                    buttons=get_json_editor_buttons()
+                    )
 
-    save_cache_button = st.sidebar.button("Save state")
+    sidebar_right, sidebar_left = st.sidebar.columns([0.5, 0.5])
+    save_cache_button = sidebar_left.button("Save state")
     if save_cache_button:
         with st.spinner("Saving State..."):
             json_utility.save(
                 st.session_state["CACHE"], cfg.PATHS.FRONTEND_CACHE)
-    state_preview = st.sidebar.empty()
+    clear_cache_button = sidebar_left.button("Clear state")
+    if clear_cache_button:
+        with st.spinner("Clearing State..."):
+            st.session_state["CACHE"] = copy.deepcopy(DEFAULT_CACHE)
+    st.sidebar.divider()
 
-    show_response_button = st.sidebar.button("Show Response")
-    if show_response_button:
-        print(dict(st.session_state))
-        response_status_message.write(
-            st.session_state['CACHE']["response_status_message"])
-        response_headers.json(
-            st.session_state['CACHE']["response_headers"])
-        if isinstance(st.session_state['CACHE']["response"], dict):
-            response.json(st.session_state['CACHE']["response"])
-        else:
-            response.write(st.session_state['CACHE']["response"])
+    response_status = right.empty()
+    response_status_message = right.empty()
+    response_status.subheader(
+        f"Response Status {-1}")
+    response_status_message.write(
+        ["No request sent.", "Waiting for new request/response."][st.session_state.get("first_sent", 0)])
+    right.divider()
+    right.markdown("##### Response Header: ")
+    response_headers = right.empty()
+    response_headers.json({})
+    right.markdown("##### Response Content: ")
+    response = right.empty()
+    response.json({})
+
+    if submitted:
+        st.session_state["first_sent"] = 1
+        with st.spinner("Fetching data ..."):
+            kwargs = {
+                "url": st.session_state["url_update"],
+                "method": st.session_state["method_update"]
+            }
+            for field in ["headers", "params", "json_payload"]:
+                try:
+                    kwargs[field] = json.loads(
+                        st.session_state[f"{field}_update"]["text"])
+                except Exception:
+                    kwargs[field] = None
+            send_request(**kwargs)
+            data = st.session_state["CACHE"]["responses"][st.session_state["CACHE"]
+                                                          ["current_response"]]
+            response_status.subheader(
+                f"Response Status {data['response_status']}")
+            response_status_message.write(
+                data["response_status_message"])
+            response_headers.json(
+                data["response_headers"])
+            if isinstance(data["response"], dict):
+                response.json(data["response"])
+            else:
+                response.write(data["response"])
