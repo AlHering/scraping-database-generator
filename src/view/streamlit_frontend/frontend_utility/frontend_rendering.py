@@ -189,7 +189,8 @@ def render_request_input_form(parent_widget: Any) -> Any:
                     buttons=get_json_editor_buttons()
                     )
     params_right.text_area("Current state:",
-                           height=160,
+                           height=150,
+                           disabled=True,
                            value=st.session_state.get("params_update", {"text": "{\n\n}"})["text"])
     request_form.divider()
     request_form.markdown(
