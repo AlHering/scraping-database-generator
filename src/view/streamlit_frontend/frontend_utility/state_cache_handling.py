@@ -61,6 +61,14 @@ def delete_response(response_name: str) -> None:
         os.remove(path)
 
 
+def reload_request(response_name: str) -> None:
+    """
+    Function for deleting a response.
+    :param response_name: Target response name.
+    """
+    pass
+
+
 def trigger_state_dictionary_update() -> None:
     """
     Function for triggering an state dictionary update.
