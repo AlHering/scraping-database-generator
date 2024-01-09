@@ -15,7 +15,7 @@ from typing import Any, Optional, List
 import streamlit as st
 from src.configuration import configuration as cfg
 from src.utility.bronze import json_utility, requests_utility, time_utility
-from src.view.streamlit_frontend.frontend_utility.state_handling import populate_state_cache
+from src.view.streamlit_frontend.frontend_utility.state_cache_handling import populate_state_cache
 from src.view.streamlit_frontend.frontend_utility.frontend_rendering import render_request_input_form, render_response_data, render_sidebar_control_header, render_sidebar_response_list
 
 
