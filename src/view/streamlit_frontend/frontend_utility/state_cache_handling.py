@@ -72,8 +72,7 @@ def reload_request(response_name: str) -> None:
     """
     data = json_utility.load(os.path.join(
         cfg.PATHS.RESPONSE_PATH, f"{response_name}.json"))
-    if response_name == st.session_state["CACHE"]["current_response"]:
-        print("CHANGING TO SAME")
+
     update_state_cache({
         "current_response": response_name,
         "method": data["request_method"],
@@ -82,8 +81,14 @@ def reload_request(response_name: str) -> None:
         "params": data["request_params"],
         "json_payload": data["request_json_payload"]
     })
-    for field in ["method_update", "url_update", "headers_update", "params_update", "json_payload_update"]:
-        st.session_state.pop(field)
+    for field in ["method_update", "url_update"]:
+        request_field = "request_" + "_".join(field.split("_")[:-1])
+        st.session_state[field] = data[request_field]
+    for field in ["headers_update", "params_update", "json_payload_update"]:
+        request_field = "request_" + "_".join(field.split("_")[:-1])
+        if data[request_field]:
+            st.session_state[field] = {"text": json.dumps(
+                data[request_field]).replace("{", "{\n\n").replace("}", "\n\n}")}
 
 
 def trigger_state_dictionary_update() -> None:
