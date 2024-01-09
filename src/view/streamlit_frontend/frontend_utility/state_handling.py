@@ -8,6 +8,7 @@
 import os
 import json
 import streamlit as st
+from typing import List, Any
 from src.configuration import configuration as cfg
 from src.utility.bronze import json_utility
 
@@ -34,6 +35,19 @@ def update_state_cache(update: dict) -> None:
     """
     for key in update:
         st.session_state["CACHE"][key] = update[key]
+
+
+def remove_state_cache_element(field_path: List[Any]) -> None:
+    """
+    Function for updating state cache.
+    :param field_path: Field path for traversing cache to target element.
+    """
+    target = field_path[-1]
+    field_path = field_path.remove(target)
+    data = st.session_state["CACHE"]
+    for key in field_path:
+        data = data[key]
+    data.pop(target)
 
 
 def trigger_state_dictionary_update() -> None:
