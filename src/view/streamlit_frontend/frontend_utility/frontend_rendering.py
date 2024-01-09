@@ -100,7 +100,8 @@ def render_sidebar_control_header() -> None:
         with st.spinner("Clearing State..."):
             st.session_state["CACHE"] = copy.deepcopy(json_utility.load(
                 cfg.PATHS.FRONTEND_DEFAULT_CACHE))
-    if st.sidebar.button(":wastebasket: Delete all responses"):
+    if st.sidebar.button(":wastebasket: Delete all responses",
+                         disabled=len(st.session_state["CACHE"]["responses"]) < 2):
         with st.spinner("Deleting responses..."):
             for response_name in list(st.session_state["CACHE"]["responses"].keys()):
                 if response_name != "default":
@@ -173,10 +174,13 @@ def render_request_input_form(parent_widget: Any) -> Any:
                     )
     request_form.divider()
     request_form.markdown("##### Request Parameters: ")
-    request_form.text(
-        """(Confirm with CTRL+ENTER or by pressing "save")""")
-    with request_form.empty():
+    params_left, params_right = request_form.columns([0.5, 0.5])
+    params_left.text(
+        """(CTRL+ENTER or "save" to confirm)""")
+    with params_left.empty():
         content = st.session_state["CACHE"].get("params")
+        print(content)
+        print(st.session_state.get("params_update"))
         code_editor(json.dumps({} if content is None else content).replace("{", "{\n\n").replace("}", "\n\n}"),
                     key="params_update",
                     lang="json",
@@ -184,6 +188,9 @@ def render_request_input_form(parent_widget: Any) -> Any:
                     options={"wrap": True},
                     buttons=get_json_editor_buttons()
                     )
+    params_right.text_area("Current state:",
+                           height=160,
+                           value=st.session_state.get("params_update", {"text": "{\n\n}"})["text"])
     request_form.divider()
     request_form.markdown(
         "##### Request JSON Payload:")
