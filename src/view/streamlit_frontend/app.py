@@ -266,22 +266,35 @@ def send_request(method: str, url: str, headers: Optional[dict] = None, params: 
         except json.decoder.JSONDecodeError:
             response_content = response.text
 
+    handle_response_data(url=url,
+                         response_data={"response": response_content,
+                                        "response_status": response_status,
+                                        "response_status_message": response_status_message,
+                                        "response_headers": response_headers})
+
+
+def handle_response_data(url: str, response_data: dict) -> None:
+    """
+    Function for handling response data after request.
+    :param url: Requested URL.
+    :param response_data: Gathered response data.
+    """
+    # Keep only the allowed number of responses
     while len(st.session_state["CACHE"]["responses"]) >= cfg.KEEP_RESPONSES:
         to_remove = st.session_state["CACHE"]["responses"].pop(
             list(st.session_state["CACHE"]["responses"].keys())[0])
         file_name = f"{to_remove['name']}.json"
         if os.path.exists(cfg.PATHS.RESPONSE_PATH):
             os.remove(cfg.PATHS.RESPONSE_PATH)
-    data = {"response": response_content,
-            "response_status": response_status,
-            "response_status_message": response_status_message,
-            "response_headers": response_headers}
 
+    # Create individual name
     response_name = f"{time_utility.get_timestamp()}_STATUS{response_status}_{urlparse(url).netloc}"
-    data["name"] = response_name
-    json_utility.save(data, os.path.join(cfg.PATHS.RESPONSE_PATH,
+    response_data["name"] = response_name
+
+    # Save response to disk and cache
+    json_utility.save(response_data, os.path.join(cfg.PATHS.RESPONSE_PATH,
                       f"{response_name}.json"))
-    st.session_state["CACHE"]["responses"][response_name] = data
+    st.session_state["CACHE"]["responses"][response_name] = response_data
     st.session_state["CACHE"]["current_response"] = response_name
 
 
