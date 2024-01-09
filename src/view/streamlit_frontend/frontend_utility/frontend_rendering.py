@@ -8,10 +8,11 @@
 import copy
 from typing import Any, List
 import streamlit as st
+from streamlit_extras.stylable_container import stylable_container
 from code_editor import code_editor
 from src.configuration import configuration as cfg
 from src.utility.bronze import json_utility, requests_utility
-from src.view.streamlit_frontend.frontend_utility.state_handling import update_state_cache
+from src.view.streamlit_frontend.frontend_utility.state_cache_handling import update_state_cache, delete_response, reload_request
 
 
 ###################
@@ -26,10 +27,17 @@ def convert_response_name_to_label(response_name: str) -> str:
     :return: Label text.
     """
     time_text, rest_text = response_name.split("_STATUS")
-    time_text = time_text.replace("_", " ").replace("-", ":")
+    time_text = time_text.replace("_", " ").replace(
+        "-(", " (").replace("-", ":")
     status_text, *url_text = rest_text.split("_")
     url_text = "_".join(url_text)
-    return f"{time_text} Status: {status_text}\n{url_text}"
+    if status_text == "200":
+        mail = ":mailbox_with_mail:"
+    elif status_text == "-1":
+        mail = ":mailbox_with_no_mail:"
+    else:
+        mail = ":mailbox_closed:"
+    return f"{time_text}\n\nStatus: {status_text}  ... {mail} \n\n {url_text if url_text else '<unkown>'}"
 
 
 def get_json_editor_buttons() -> List[dict]:
@@ -74,7 +82,7 @@ def get_json_editor_buttons() -> List[dict]:
 
 
 ###################
-# Helper functions
+# Rendering functions
 ###################
 
 
@@ -102,11 +110,21 @@ def render_sidebar_response_list() -> None:
     """
     for response_name in st.session_state["CACHE"]["responses"]:
         if response_name != "default":
-            st.sidebar.button(convert_response_name_to_label(response_name),
-                              on_click=lambda x: update_state_cache({
-                                  "current_response": x
-                              }),
-                              args=(response_name, ))
+            left, right = st.sidebar.columns([0.8, 0.2])
+            left.button(f"{convert_response_name_to_label(response_name)}",
+                        on_click=update_state_cache,
+                        args=({"current_response": response_name}, ),
+                        use_container_width=True)
+            right.button(":incoming_envelope:",
+                         key=f"reload_{response_name}",
+                         on_click=reload_request,
+                         args=(response_name),
+                         use_container_width=True)
+            right.button(":wastebasket:",
+                         key=f"delete_{response_name}",
+                         on_click=delete_response,
+                         args=(response_name),
+                         use_container_width=True)
 
 
 def render_request_input_form(parent_widget: Any) -> Any:
