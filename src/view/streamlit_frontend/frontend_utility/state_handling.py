@@ -51,14 +51,3 @@ def trigger_state_dictionary_update() -> None:
         else:
             update_state_cache({state_dict: json.loads(
                 st.session_state[f"{state_dict}_update"]["text"])})
-
-
-def update_request_state() -> None:
-    """
-    Function for updating request state before sending off requests.
-    """
-    print("="*10 + "BEFORE" + "="*10)
-    print(st.session_state["CACHE"])
-    trigger_state_dictionary_update()
-    print("="*10 + "AFTER" + "="*10)
-    print(st.session_state["CACHE"])
