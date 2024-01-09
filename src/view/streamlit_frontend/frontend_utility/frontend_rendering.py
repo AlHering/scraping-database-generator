@@ -6,6 +6,7 @@
 ****************************************************
 """
 import copy
+import json
 from typing import Any, List
 import streamlit as st
 from streamlit_extras.stylable_container import stylable_container
@@ -119,11 +120,12 @@ def render_sidebar_response_list() -> None:
                         on_click=update_state_cache,
                         args=({"current_response": response_name}, ),
                         use_container_width=True)
-            right.button(":incoming_envelope:",
-                         key=f"reload_{response_name}",
-                         on_click=reload_request,
-                         args=(response_name, ),
-                         use_container_width=True)
+            if right.button(":arrow_right:",
+                            key=f"reload_{response_name}",
+                            on_click=reload_request,
+                            args=(response_name, ),
+                            use_container_width=True):
+                st.rerun()
             right.button(":wastebasket:",
                          key=f"delete_{response_name}",
                          on_click=delete_response,
@@ -151,7 +153,7 @@ def render_request_input_form(parent_widget: Any) -> Any:
     sending_line_middle.text_input("URL",
                                    key="url_update",
                                    value=st.session_state.get(
-                                       "url_update", ""))
+                                       "url", ""))
     sending_line_right.markdown("## ")
 
     submitted = sending_line_right.form_submit_button(
@@ -161,7 +163,8 @@ def render_request_input_form(parent_widget: Any) -> Any:
     request_form.text(
         """(Confirm with CTRL+ENTER or by pressing "save")""")
     with request_form.empty():
-        code_editor("{\n\n\n\n}",
+        content = st.session_state["CACHE"].get("headers")
+        code_editor(json.dumps({} if content is None else content).replace("{", "{\n\n").replace("}", "\n\n}"),
                     key="headers_update",
                     lang="json",
                     allow_reset=True,
@@ -173,7 +176,8 @@ def render_request_input_form(parent_widget: Any) -> Any:
     request_form.text(
         """(Confirm with CTRL+ENTER or by pressing "save")""")
     with request_form.empty():
-        code_editor("{\n\n\n\n}",
+        content = st.session_state["CACHE"].get("params")
+        code_editor(json.dumps({} if content is None else content).replace("{", "{\n\n").replace("}", "\n\n}"),
                     key="params_update",
                     lang="json",
                     allow_reset=True,
@@ -186,7 +190,8 @@ def render_request_input_form(parent_widget: Any) -> Any:
     request_form.text(
         """(Confirm with CTRL+ENTER or by pressing "save")""")
     with request_form.empty():
-        code_editor("{\n\n\n\n}",
+        content = st.session_state["CACHE"].get("json_payload")
+        code_editor(json.dumps({} if content is None else content).replace("{", "{\n\n").replace("}", "\n\n}"),
                     key="json_payload_update",
                     lang="json",
                     allow_reset=True,
