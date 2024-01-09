@@ -79,17 +79,21 @@ def send_request(method: str, url: str, headers: Optional[dict] = None, params: 
         except json.decoder.JSONDecodeError:
             response_content = response.text
 
-    handle_response_data(url=url,
-                         response_data={"response": response_content,
-                                        "response_status": response_status,
-                                        "response_status_message": response_status_message,
-                                        "response_headers": response_headers})
+    handle_response_data(response_data={
+        "request_method": method,
+        "request_url": url,
+        "request_headers": headers,
+        "request_params": params,
+        "request_json_payload": json_payload,
+        "response": response_content,
+        "response_status": response_status,
+        "response_status_message": response_status_message,
+        "response_headers": response_headers})
 
 
-def handle_response_data(url: str, response_data: dict) -> None:
+def handle_response_data(response_data: dict) -> None:
     """
     Function for handling response data after request.
-    :param url: Requested URL.
     :param response_data: Gathered response data.
     """
     # Keep only the allowed number of responses
@@ -102,7 +106,7 @@ def handle_response_data(url: str, response_data: dict) -> None:
             os.remove(path)
 
     # Create individual name
-    response_name = f"{time_utility.get_timestamp()}_STATUS{response_data['response_status']}_{urlparse(url).netloc}"
+    response_name = f"{time_utility.get_timestamp()}_STATUS{response_data['response_status']}_{urlparse(response_data['request_url']).netloc}"
     response_data["name"] = response_name
 
     # Save response to disk and cache
