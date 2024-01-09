@@ -6,7 +6,6 @@
 ****************************************************
 """
 import os
-import copy
 import json
 import traceback
 import requests
