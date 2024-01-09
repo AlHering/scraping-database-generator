@@ -70,7 +70,20 @@ def reload_request(response_name: str) -> None:
     Function for deleting a response.
     :param response_name: Target response name.
     """
-    pass
+    data = json_utility.load(os.path.join(
+        cfg.PATHS.RESPONSE_PATH, f"{response_name}.json"))
+    if response_name == st.session_state["CACHE"]["current_response"]:
+        print("CHANGING TO SAME")
+    update_state_cache({
+        "current_response": response_name,
+        "method": data["request_method"],
+        "url": data["request_url"],
+        "headers": data["request_headers"],
+        "params": data["request_params"],
+        "json_payload": data["request_json_payload"]
+    })
+    for field in ["method_update", "url_update", "headers_update", "params_update", "json_payload_update"]:
+        st.session_state.pop(field)
 
 
 def trigger_state_dictionary_update() -> None:

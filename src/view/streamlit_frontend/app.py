@@ -134,7 +134,11 @@ if __name__ == "__main__":
         populate_state_cache()
         st.rerun()
     column_splitter_kwargs = {"spec": [0.5, 0.5], "gap": "medium"}
-
+    data = {key: val for key, val in st.session_state['CACHE'].items(
+    ) if key in ["method", "url", "headers", "params", "json_payload"]}
+    data.update({key: val for key, val in st.session_state.items(
+    ) if key.endswith("update")})
+    print(f"Running with {data}")
     # Main page
     st.title("API Workbench")
     st.session_state["current_response"] = "default"
