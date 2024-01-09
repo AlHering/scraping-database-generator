@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 ****************************************************
-*          Basic Language Model Backend            *
+*           Scraping Database Generator            *
 *            (c) 2023 Alexander Hering             *
 ****************************************************
 """
