@@ -129,6 +129,71 @@ def get_json_editor_buttons() -> List[dict]:
 ###################
 
 
+def render_request_input_form(parent_widget: Any) -> Any:
+    """
+    Function for rendering request input form.
+    :param parent_widget: Parent widget.
+    :return: Submit button widget.
+    """
+    request_form = left.form("request_update")
+
+    sending_line_left, sending_line_middle, sending_line_right = request_form.columns(
+        [0.18, 0.67, 0.15])
+
+    sending_line_left.selectbox("Method",
+                                key="method_update",
+                                options=list(
+                                    requests_utility.REQUEST_METHODS.keys()),
+                                index=list(
+                                    requests_utility.REQUEST_METHODS.keys()).index(st.session_state["CACHE"]["method"]))
+    sending_line_middle.text_input("URL",
+                                   key="url_update",
+                                   value=st.session_state.get(
+                                       "url_update", ""))
+    sending_line_right.markdown("## ")
+
+    submitted = sending_line_right.form_submit_button(
+        "Send")
+    request_form.divider()
+    request_form.markdown("##### Request Headers: ")
+    request_form.text(
+        """(Confirm with CTRL+ENTER or by pressing "save")""")
+    with request_form.empty():
+        code_editor("{\n\n\n\n}",
+                    key="headers_update",
+                    lang="json",
+                    allow_reset=True,
+                    options={"wrap": True},
+                    buttons=get_json_editor_buttons()
+                    )
+    request_form.divider()
+    request_form.markdown("##### Request Parameters: ")
+    request_form.text(
+        """(Confirm with CTRL+ENTER or by pressing "save")""")
+    with request_form.empty():
+        code_editor("{\n\n\n\n}",
+                    key="params_update",
+                    lang="json",
+                    allow_reset=True,
+                    options={"wrap": True},
+                    buttons=get_json_editor_buttons()
+                    )
+    request_form.divider()
+    request_form.markdown(
+        "##### Request JSON Payload:")
+    request_form.text(
+        """(Confirm with CTRL+ENTER or by pressing "save")""")
+    with request_form.empty():
+        code_editor("{\n\n\n\n}",
+                    key="json_payload_update",
+                    lang="json",
+                    allow_reset=True,
+                    options={"wrap": True},
+                    buttons=get_json_editor_buttons()
+                    )
+    return submitted
+
+
 def send_request(method: str, url: str, headers: Optional[dict] = None, params: Optional[dict] = None, json_payload: Optional[dict] = None) -> None:
     """
     Function for sending off request.
@@ -202,62 +267,8 @@ if __name__ == "__main__":
 
     left, right = st.columns(
         **column_splitter_kwargs)
-    request_form = left.form("request_update")
 
-    sending_line_left, sending_line_middle, sending_line_right = request_form.columns(
-        [0.18, 0.67, 0.15])
-
-    sending_line_left.selectbox("Method",
-                                key="method_update",
-                                options=list(
-                                    requests_utility.REQUEST_METHODS.keys()),
-                                index=list(
-                                    requests_utility.REQUEST_METHODS.keys()).index(st.session_state["CACHE"]["method"]))
-    sending_line_middle.text_input("URL",
-                                   key="url_update",
-                                   value=st.session_state.get(
-                                       "url_update", ""))
-    sending_line_right.markdown("## ")
-
-    submitted = sending_line_right.form_submit_button(
-        "Send")
-    request_form.divider()
-    request_form.markdown("##### Request Headers: ")
-    request_form.text(
-        """(Confirm with CTRL+ENTER or by pressing "save")""")
-    with request_form.empty():
-        code_editor("{\n\n\n\n}",
-                    key="headers_update",
-                    lang="json",
-                    allow_reset=True,
-                    options={"wrap": True},
-                    buttons=get_json_editor_buttons()
-                    )
-    request_form.divider()
-    request_form.markdown("##### Request Parameters: ")
-    request_form.text(
-        """(Confirm with CTRL+ENTER or by pressing "save")""")
-    with request_form.empty():
-        code_editor("{\n\n\n\n}",
-                    key="params_update",
-                    lang="json",
-                    allow_reset=True,
-                    options={"wrap": True},
-                    buttons=get_json_editor_buttons()
-                    )
-    request_form.divider()
-    request_form.markdown(
-        "##### Request JSON Payload:")
-    request_form.text(
-        """(Confirm with CTRL+ENTER or by pressing "save")""")
-    with request_form.empty():
-        code_editor("{\n\n\n\n}",
-                    key="json_payload_update",
-                    lang="json",
-                    allow_reset=True,
-                    options={"wrap": True},
-                    buttons=get_json_editor_buttons()
-                    )
+    submitted = render_request_input_form(left)
 
     sidebar_right, sidebar_left = st.sidebar.columns([0.5, 0.5])
     save_cache_button = sidebar_left.button("Save state")
