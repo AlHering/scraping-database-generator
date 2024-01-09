@@ -153,7 +153,7 @@ def render_request_input_form(parent_widget: Any) -> Any:
     :param parent_widget: Parent widget.
     :return: Submit button widget.
     """
-    request_form = left.form("request_update")
+    request_form = parent_widget.form("request_update")
 
     sending_line_left, sending_line_middle, sending_line_right = request_form.columns(
         [0.18, 0.67, 0.15])
