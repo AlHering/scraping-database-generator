@@ -343,7 +343,6 @@ if __name__ == "__main__":
     st.title("API Workbench")
     st.session_state["current_response"] = "default"
     render_sidebar_control_header()
-    render_sidebar_response_list()
     left, right = st.columns(
         **column_splitter_kwargs)
     submitted = render_request_input_form(left)
@@ -377,3 +376,4 @@ if __name__ == "__main__":
             response.json(data["response"])
         else:
             response.write(data["response"])
+    render_sidebar_response_list()
