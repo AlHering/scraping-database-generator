@@ -129,6 +129,24 @@ def get_json_editor_buttons() -> List[dict]:
 ###################
 
 
+def render_sidebar_control_header() -> None:
+    """
+    Function for rendering the sidebar control header.
+    """
+    sidebar_right, sidebar_left = st.sidebar.columns([0.5, 0.5])
+    save_cache_button = sidebar_left.button("Save state")
+    if save_cache_button:
+        with st.spinner("Saving State..."):
+            json_utility.save(
+                st.session_state["CACHE"], cfg.PATHS.FRONTEND_CACHE)
+    clear_cache_button = sidebar_right.button("Clear state")
+    if clear_cache_button:
+        with st.spinner("Clearing State..."):
+            st.session_state["CACHE"] = copy.deepcopy(json_utility.load(
+                cfg.PATHS.FRONTEND_DEFAULT_CACHE))
+    st.sidebar.divider()
+
+
 def render_request_input_form(parent_widget: Any) -> Any:
     """
     Function for rendering request input form.
@@ -269,19 +287,6 @@ if __name__ == "__main__":
         **column_splitter_kwargs)
 
     submitted = render_request_input_form(left)
-
-    sidebar_right, sidebar_left = st.sidebar.columns([0.5, 0.5])
-    save_cache_button = sidebar_left.button("Save state")
-    if save_cache_button:
-        with st.spinner("Saving State..."):
-            json_utility.save(
-                st.session_state["CACHE"], cfg.PATHS.FRONTEND_CACHE)
-    clear_cache_button = sidebar_right.button("Clear state")
-    if clear_cache_button:
-        with st.spinner("Clearing State..."):
-            st.session_state["CACHE"] = copy.deepcopy(json_utility.load(
-                cfg.PATHS.FRONTEND_DEFAULT_CACHE))
-    st.sidebar.divider()
 
     spinner_placeholder = right.empty()
     response_status = right.empty()
