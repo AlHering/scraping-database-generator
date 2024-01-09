@@ -41,5 +41,6 @@ BACKEND_PATH = os.path.join(DATA_PATH, "backend")
 Frontends
 """
 FRONTEND_PATH = os.path.join(DATA_PATH, "frontend")
+FRONTEND_DEFAULT_CACHE = os.path.join(FRONTEND_PATH, "default_cache.json")
 FRONTEND_CACHE = os.path.join(FRONTEND_PATH, "cache.json")
 RESPONSE_PATH = os.path.join(FRONTEND_PATH, "responses")

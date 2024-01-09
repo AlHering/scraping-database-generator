@@ -26,24 +26,6 @@ import requests
 ###################
 
 
-DEFAULT_CACHE = {
-    "method": "GET",
-    "url": "",
-    "headers": {},
-    "params": {},
-    "json_payload": {},
-    "responses": {
-        "default": {
-            "response_status": -1,
-            "response_status_message": "No request sent.",
-            "response_headers": {},
-            "response": {}
-        }
-    },
-    "current_response": "default"
-}
-
-
 def update_state_cache(update: dict) -> None:
     """
     Function for updating state cache.
@@ -193,12 +175,15 @@ if __name__ == "__main__":
     if not os.path.exists(cfg.PATHS.RESPONSE_PATH):
         os.makedirs(cfg.PATHS.RESPONSE_PATH)
 
-    with st.spinner("Loading State..."):
-        if os.path.exists(cfg.PATHS.FRONTEND_CACHE):
-            st.session_state["CACHE"] = json_utility.load(
-                cfg.PATHS.FRONTEND_CACHE)
-        else:
-            st.session_state["CACHE"] = copy.deepcopy(DEFAULT_CACHE)
+    if "CACHE" not in st.session_state:
+        with st.spinner("Loading State..."):
+            if os.path.exists(cfg.PATHS.FRONTEND_CACHE):
+                st.session_state["CACHE"] = json_utility.load(
+                    cfg.PATHS.FRONTEND_CACHE)
+            else:
+                st.session_state["CACHE"] = json_utility.load(
+                    cfg.PATHS.FRONTEND_DEFAULT_CACHE)
+        st.rerun()
 
     st.title("API Workbench")
 
