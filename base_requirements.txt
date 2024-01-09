@@ -11,3 +11,4 @@ pandas==1.5.3
 streamlit==1.29.0
 streamlit-server-state==0.17.1
 streamlit-code-editor==0.1.10
+streamlit-extras==0.3.6
