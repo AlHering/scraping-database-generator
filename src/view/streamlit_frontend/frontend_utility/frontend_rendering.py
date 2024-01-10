@@ -100,6 +100,8 @@ def render_sidebar_control_header() -> None:
         with st.spinner("Clearing State..."):
             st.session_state["CACHE"] = copy.deepcopy(json_utility.load(
                 cfg.PATHS.FRONTEND_DEFAULT_CACHE))
+    if sidebar_left.button("Reload workbench"):
+        st.rerun()
     if st.sidebar.button(":wastebasket: Delete all responses",
                          disabled=len(st.session_state["CACHE"]["responses"]) < 2):
         with st.spinner("Deleting responses..."):
@@ -151,14 +153,14 @@ def render_json_input(parent_widget: Any, cache_field: str) -> None:
                     options={"wrap": True},
                     buttons=get_json_editor_buttons()
                     )
-    if st.session_state.get("show_input_state_toggle"):
-        params_state = st.session_state.get(
-            f"{cache_field}_update", {"text": "{\n\n}"})
-        parent_widget.text_area("Current state:",
-                                key=f"{cache_field}_state",
-                                height=160,
-                                disabled=True,
-                                value=params_state["text"] if params_state else "{\n\n\n\n}")
+        if st.session_state.get("show_input_state_toggle"):
+            params_state = st.session_state.get(
+                f"{cache_field}_update", {"text": "{\n\n}"})
+            parent_widget.text_area("Current state:",
+                                    key=f"{cache_field}_state",
+                                    height=160,
+                                    disabled=True,
+                                    value=params_state["text"] if params_state else "{\n\n\n\n}")
 
 
 def render_request_input_form(parent_widget: Any) -> Any:
@@ -178,12 +180,9 @@ def render_request_input_form(parent_widget: Any) -> Any:
                                 key="method_update",
                                 options=list(
                                     requests_utility.REQUEST_METHODS.keys()),
-                                index=list(
-                                    requests_utility.REQUEST_METHODS.keys()).index(st.session_state["CACHE"]["method"]))
+                                index=0)
     sending_line_middle.text_input("URL",
-                                   key="url_update",
-                                   value=st.session_state.get(
-                                       "url", ""))
+                                   key="url_update")
     sending_line_right.markdown("## ")
 
     submitted = sending_line_right.form_submit_button(
@@ -225,6 +224,7 @@ def render_response_data(parent_widget: Any) -> None:
             data["response_status_message"])
         response_headers.json(
             data["response_headers"])
+
         if isinstance(data["response"], dict):
             response.json(data["response"])
         else:
