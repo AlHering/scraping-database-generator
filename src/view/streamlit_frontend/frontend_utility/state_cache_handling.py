@@ -75,8 +75,6 @@ def reload_request(response_name: str) -> None:
 
     update_state_cache({
         "current_response": response_name,
-        "method": data["request_method"],
-        "url": data["request_url"],
         "headers": data["request_headers"],
         "params": data["request_params"],
         "json_payload": data["request_json_payload"]
@@ -86,20 +84,3 @@ def reload_request(response_name: str) -> None:
         st.session_state[field] = data[request_field]
     for field in ["headers_update", "params_update", "json_payload_update"]:
         st.session_state.pop(field)
-
-
-def trigger_state_dictionary_update() -> None:
-    """
-    Function for triggering an state dictionary update.
-    """
-    update_state_cache({
-        "method": st.session_state["method_update"],
-        "url": st.session_state["url_update"] if st.session_state["url_update"] else st.session_state["url"]
-    })
-
-    for state_dict in ["headers", "params", "json"]:
-        if st.session_state.get(f"{state_dict}_update") is None or not json_utility.is_json(st.session_state[f"{state_dict}_update"]["text"]):
-            update_state_cache({state_dict: {}})
-        else:
-            update_state_cache({state_dict: json.loads(
-                st.session_state[f"{state_dict}_update"]["text"])})
