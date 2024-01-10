@@ -142,7 +142,7 @@ if __name__ == "__main__":
     print(f"Running with {data}")
     # Main page
     st.title("API Workbench")
-    st.session_state["current_response"] = "default"
+    render_sidebar_control_header()
     left, right = st.columns(
         **column_splitter_kwargs)
     submitted = render_request_input_form(left)
@@ -155,5 +155,5 @@ if __name__ == "__main__":
             send_request(**kwargs)
 
     render_response_data(right)
-    render_sidebar_control_header()
     render_sidebar_response_list()
+    st.json(dict(st.session_state))
