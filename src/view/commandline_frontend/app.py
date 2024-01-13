@@ -87,11 +87,13 @@ Helper functions
 """
 
 
-def check_folder_structure(root: str = IMAGE_GENERATION_FOLDER) -> None:
+def get_available_command_panel(available_commands: List[Command] = None) -> Optional(Panel):
     """
-    Function for checking folder structure.
-    :param
+    Function for acquiring a panel, containing available commands.
+    :param available_commands: List of available commands.
+    :return: Panel, containing available commands, if there are any.
     """
+    pass
 
 
 def get_bottom_toolbar() -> str:
