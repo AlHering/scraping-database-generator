@@ -9,6 +9,7 @@ import os
 import json
 import streamlit as st
 from typing import List, Any
+from src.interfaces.frontend_interface import populate_or_get_frontend_cache, delete_response_file, load_response_file
 from src.configuration import configuration as cfg
 from src.utility.bronze import json_utility
 
@@ -17,15 +18,8 @@ def populate_state_cache() -> None:
     """
     Function for populating state cache.
     """
-    if not os.path.exists(cfg.PATHS.RESPONSE_PATH):
-        os.makedirs(cfg.PATHS.RESPONSE_PATH)
     with st.spinner("Loading State..."):
-        if os.path.exists(cfg.PATHS.FRONTEND_CACHE):
-            st.session_state["CACHE"] = json_utility.load(
-                cfg.PATHS.FRONTEND_CACHE)
-        else:
-            st.session_state["CACHE"] = json_utility.load(
-                cfg.PATHS.FRONTEND_DEFAULT_CACHE)
+        st.session_state["CACHE"] = populate_or_get_frontend_cache()
 
 
 def update_state_cache(update: dict) -> None:
@@ -60,9 +54,7 @@ def delete_response(response_name: str) -> None:
             "current_response": "default"
         })
     remove_state_cache_element(["responses", response_name])
-    path = os.path.join(cfg.PATHS.RESPONSE_PATH, f"{response_name}.json")
-    if os.path.exists(path):
-        os.remove(path)
+    delete_response_file(response_name)
 
 
 def reload_request(response_name: str) -> None:
@@ -70,8 +62,7 @@ def reload_request(response_name: str) -> None:
     Function for deleting a response.
     :param response_name: Target response name.
     """
-    data = json_utility.load(os.path.join(
-        cfg.PATHS.RESPONSE_PATH, f"{response_name}.json"))
+    data = load_response_file(response_name)
 
     update_state_cache({
         "current_response": response_name,
