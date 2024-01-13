@@ -15,19 +15,20 @@ from src.configuration import configuration as cfg
 from src.utility.bronze import requests_utility, json_utility
 
 
-def populate_or_get_frontend_cache() -> dict:
+def populate_or_get_frontend_cache(force_default: bool = False) -> dict:
     """
     Function for populating state cache.
+    :param force_default: Flag for declaring, whether to force loading the default cache.
     :return: Frontend cache.
     """
     if not os.path.exists(cfg.PATHS.RESPONSE_PATH):
         os.makedirs(cfg.PATHS.RESPONSE_PATH)
-        if os.path.exists(cfg.PATHS.FRONTEND_CACHE):
-            return json_utility.load(
-                cfg.PATHS.FRONTEND_CACHE)
-        else:
-            return json_utility.load(
-                cfg.PATHS.FRONTEND_DEFAULT_CACHE)
+    if os.path.exists(cfg.PATHS.FRONTEND_CACHE) and not force_default:
+        return json_utility.load(
+            cfg.PATHS.FRONTEND_CACHE)
+    else:
+        return json_utility.load(
+            cfg.PATHS.FRONTEND_DEFAULT_CACHE)
 
 
 def load_response_file(response_name: str) -> dict:
