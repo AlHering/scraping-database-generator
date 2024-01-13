@@ -17,7 +17,7 @@ from src.utility.bronze import requests_utility, json_utility
 
 def populate_or_get_frontend_cache(force_default: bool = False) -> dict:
     """
-    Function for populating state cache.
+    Function for populating or acquiring state cache.
     :param force_default: Flag for declaring, whether to force loading the default cache.
     :return: Frontend cache.
     """
@@ -29,6 +29,14 @@ def populate_or_get_frontend_cache(force_default: bool = False) -> dict:
     else:
         return json_utility.load(
             cfg.PATHS.FRONTEND_DEFAULT_CACHE)
+
+
+def save_frontend_cache(cache_data: dict) -> None:
+    """
+    Function for saving state cache.
+    :param cache_data: Cache data.
+    """
+    json_utility.save(cache_data, cfg.PATHS.FRONTEND_CACHE)
 
 
 def load_response_file(response_name: str) -> dict:
