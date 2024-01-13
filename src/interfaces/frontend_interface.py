@@ -5,12 +5,49 @@
 *            (c) 2024 Alexander Hering             *
 ****************************************************
 """
+import os
 from typing import Optional
 import requests
 import json
 import traceback
 from http.client import responses as status_codes
-from src.utility.bronze import requests_utility
+from src.configuration import configuration as cfg
+from src.utility.bronze import requests_utility, json_utility
+
+
+def populate_or_get_frontend_cache() -> dict:
+    """
+    Function for populating state cache.
+    :return: Frontend cache.
+    """
+    if not os.path.exists(cfg.PATHS.RESPONSE_PATH):
+        os.makedirs(cfg.PATHS.RESPONSE_PATH)
+        if os.path.exists(cfg.PATHS.FRONTEND_CACHE):
+            return json_utility.load(
+                cfg.PATHS.FRONTEND_CACHE)
+        else:
+            return json_utility.load(
+                cfg.PATHS.FRONTEND_DEFAULT_CACHE)
+
+
+def load_response_file(response_name: str) -> dict:
+    """
+    Function for loading response file.
+    :param response_name: Response name.
+    :return: Response file content.
+    """
+    return json_utility.load(os.path.join(
+        cfg.PATHS.RESPONSE_PATH, f"{response_name}.json"))
+
+
+def delete_response_file(response_name: str) -> None:
+    """
+    Function for deleting response file.
+    :param response_name: Response name.
+    """
+    path = os.path.join(cfg.PATHS.RESPONSE_PATH, f"{response_name}.json")
+    if os.path.exists(path):
+        os.remove(path)
 
 
 def send_request(method: str, url: str, headers: Optional[dict] = None, params: Optional[dict] = None, json_payload: Optional[dict] = None) -> dict:
