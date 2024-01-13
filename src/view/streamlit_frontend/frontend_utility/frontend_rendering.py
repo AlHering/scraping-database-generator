@@ -11,8 +11,8 @@ from typing import Any, List
 import streamlit as st
 
 from code_editor import code_editor
-from src.configuration import configuration as cfg
-from src.utility.bronze import json_utility, requests_utility
+from src.utility.bronze import requests_utility
+from src.interfaces.frontend_interface import populate_or_get_frontend_cache, save_frontend_cache
 from src.view.streamlit_frontend.frontend_utility.state_cache_handling import update_state_cache, delete_response, reload_request
 
 
@@ -94,12 +94,11 @@ def render_sidebar_control_header() -> None:
     sidebar_left, sidebar_right = st.sidebar.columns([0.5, 0.5])
     if sidebar_right.button(":floppy_disk: Save state"):
         with st.spinner("Saving State..."):
-            json_utility.save(
-                st.session_state["CACHE"], cfg.PATHS.FRONTEND_CACHE)
+            save_frontend_cache(st.session_state["CACHE"])
     if sidebar_left.button(":cd: Clear state"):
         with st.spinner("Clearing State..."):
-            st.session_state["CACHE"] = copy.deepcopy(json_utility.load(
-                cfg.PATHS.FRONTEND_DEFAULT_CACHE))
+            st.session_state["CACHE"] = populate_or_get_frontend_cache(
+                force_default=True)
     if sidebar_left.button("Reload workbench"):
         st.rerun()
     if st.sidebar.button(":wastebasket: Delete all responses",
