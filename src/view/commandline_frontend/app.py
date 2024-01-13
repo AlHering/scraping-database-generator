@@ -143,9 +143,14 @@ def run_session_loop(source: str = None) -> None:
             command.run_command(**CACHE)
         for panel in current_state.get("post_panels", []):
             rich_print(panel)
+        for panel in current_state.get("post_panels", []):
+            rich_print(panel)
+        commands = current_state.get("commands", [])
+        command_panel = get_available_command_panel()
+        if command_panel is not None:
+            rich_print(command_panel)
 
-        completer = WordCompleter(
-            [command.command for command in current_state.get("commands", [])])
+        completer = WordCompleter([command.command for command in commands])
         user_input = session.prompt("> ", completer=completer).split(" ")
         # TODO: Handle input
 
