@@ -6,16 +6,13 @@
 ****************************************************
 """
 import os
-import copy
 import json
-import traceback
-import requests
 from urllib.parse import urlparse
-from typing import Any, Optional, List
+from typing import Any, List
 import streamlit as st
 from src.configuration import configuration as cfg
 from src.interfaces.frontend_interface import send_request
-from src.utility.bronze import json_utility, requests_utility, time_utility
+from src.utility.bronze import json_utility, time_utility
 from src.view.streamlit_frontend.frontend_utility.state_cache_handling import populate_state_cache
 from src.view.streamlit_frontend.frontend_utility.frontend_rendering import render_request_input_form, render_response_data, render_sidebar_control_header, render_sidebar_response_list
 
