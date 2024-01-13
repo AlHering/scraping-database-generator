@@ -148,8 +148,8 @@ def load_transformers_model(model_path: str,
     generator = None
 
     if config_path:
-        config = AutoConfig.from_pretrained(
-            model_path_or_repo_id=config_path)
+        config = AutoConfig.from_prretrained(
+            pretrained_model_name_or_path=config_path)
     if config_parameters is not None:
         for key in config_parameters:
             setattr(config, key, config_parameters[key])
