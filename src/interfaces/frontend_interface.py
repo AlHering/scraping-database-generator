@@ -60,4 +60,4 @@ def send_request(method: str, url: str, headers: Optional[dict] = None, params: 
         "response": response_content,
         "response_status": response_status,
         "response_status_message": response_status_message,
-        "response_headers": response_headers})
+        "response_headers": response_headers}
