@@ -69,6 +69,8 @@ def run_session_loop(source: str = None) -> None:
 
     while not CLOSE_SESSION:
         if dictionary_utility.exists(APP_CONFIG, CACHE["current_path"]):
+            if len(CACHE["current_path"]) == 0:
+                CACHE["current_path"] = ["main_page"]
             current_state = dictionary_utility.extract_nested_value(
                 APP_CONFIG, CACHE["current_path"])
         else:
