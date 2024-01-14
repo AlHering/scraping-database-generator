@@ -17,12 +17,12 @@ class Command(object):
     Command class.
     """
 
-    def __init__(self, command: str, function: Callable, kwargs_description: Dict[str, str], default_kwargs: dict = None, help_text: str = None) -> None:
+    def __init__(self, command: str, function: Callable, argument_descriptions: Dict[str, str], default_kwargs: dict = None, help_text: str = None) -> None:
         """
         Initiation method.
         :param command: Command.
         :param function: Function.
-        :param kwargs_description: Keyword argument descriptions.
+        :param argument_descriptions: Keyword argument descriptions.
         :param default_kwargs: Default keyword arguments.
             Defaults to None.
         :param help_text: Help text.
@@ -30,11 +30,11 @@ class Command(object):
         """
         self.command = command
         self.function = function
-        self.kwargs_description = kwargs_description
+        self.kwargs_description = argument_descriptions
         self.default_kwargs = {} if default_kwargs is None else default_kwargs
         self.help_text = f"[{RichColors.commands}]No help text available for '[{RichColors.command}]{command}[{RichColors.commands}]'" if help_text is None else help_text
-        for keyword in kwargs_description:
-            self.helptext = f"\n\t[{RichColors.command}]{keyword}{RichColors.commands}: {kwargs_description[keyword]}"
+        for keyword in argument_descriptions:
+            self.helptext = f"\n\t[{RichColors.command}]{keyword}{RichColors.commands}: {argument_descriptions[keyword]}"
 
     def run_command(self, **kwargs: Optional[Any]) -> bool:
         """
