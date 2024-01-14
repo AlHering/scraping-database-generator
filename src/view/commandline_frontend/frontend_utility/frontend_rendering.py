@@ -17,7 +17,7 @@ def get_error_page() -> dict:
     :return: Error page structure.
     """
     return {
-        "pre_panels": [Panel(""""""), title=],
+        "pre_panels": [Panel("""""", title="[red]Error")],
         "execute": [],
         "post_panels": [],
         "commands": [],
@@ -25,7 +25,7 @@ def get_error_page() -> dict:
     }
 
 
-def get_available_command_panel(available_commands: List[Command] = None) -> Optional(Panel):
+def get_available_command_panel(available_commands: List[Command] = None) -> Optional[Panel]:
     """
     Function for acquiring a panel, containing available commands.
     :param available_commands: List of available commands.
@@ -41,7 +41,7 @@ def get_bottom_toolbar() -> str:
     """
     return [
         ("class:bottom-toolbar",
-         "ctl-d or ctl-c to exit",)
+         "ctl-c to exit, ctl-d to save cache and exit",)
     ]
 
 
