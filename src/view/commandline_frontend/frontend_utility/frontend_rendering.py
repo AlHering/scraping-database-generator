@@ -11,6 +11,20 @@ from prompt_toolkit.styles import Style
 from src.view.commandline_frontend.frontend_utility.frontend_abstractions import Command
 
 
+def get_error_page() -> dict:
+    """
+    Function for acquiring error page.
+    :return: Error page structure.
+    """
+    return {
+        "pre_panels": [Panel(""""""), title=],
+        "execute": [],
+        "post_panels": [],
+        "commands": [],
+        "prompt": ""
+    }
+
+
 def get_available_command_panel(available_commands: List[Command] = None) -> Optional(Panel):
     """
     Function for acquiring a panel, containing available commands.
