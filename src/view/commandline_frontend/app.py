@@ -44,7 +44,7 @@ def exit_app(event: KeyPressEvent) -> None:
     CLOSE_SESSION = True
     if event.key_sequence[0].key.value == "c-d":
         rich_print("[green bold]Saving cache...")
-        save_frontend_cache(CACHE)
+        save_frontend_cache(CACHE, ignore=["current_path"])
     rich_print("[bold]Bye [white]...")
     event.app.exit()
 
@@ -64,13 +64,13 @@ def run_session_loop(source: str = None) -> None:
         auto_suggest=AutoSuggestFromHistory(),
         key_bindings=BINDINGS
     )
-    current_path = ["error_page"]
+    CACHE["current_path"] = ["error_page"]
     CLOSE_SESSION = False
 
     while not CLOSE_SESSION:
-        if dictionary_utility.exists(APP_CONFIG, current_path):
+        if dictionary_utility.exists(APP_CONFIG, CACHE["current_path"]):
             current_state = dictionary_utility.extract_nested_value(
-                APP_CONFIG, current_path)
+                APP_CONFIG, CACHE["current_path"])
         else:
             current_state = APP_CONFIG.get("error_page", {})
 
