@@ -7,7 +7,7 @@
 """
 from rich import print as rich_print
 from src.interfaces.frontend_interface import populate_or_get_frontend_cache, save_frontend_cache
-from src.view.commandline_frontend.frontend_utility.frontend_abstractions import Command
+from src.view.commandline_frontend.frontend_utility.frontend_commands import Command
 from src.view.commandline_frontend.frontend_utility import frontend_rendering
 from src.utility.bronze import dictionary_utility
 from prompt_toolkit import PromptSession
@@ -26,7 +26,7 @@ APP_CONFIG = {
         "commands": [],
         "prompt": ""
     },
-    "error_page": frontend_rendering.get_error_page()
+    "error_page": frontend_rendering.get_error_page([])
 }
 CACHE = None
 CLOSE_SESSION = None
