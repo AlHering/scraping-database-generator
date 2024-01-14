@@ -5,10 +5,11 @@
 *            (c) 2024 Alexander Hering             *
 ****************************************************
 """
-from typing import Optional, Any, Callable
+from typing import Optional, Any, Callable, Dict
 import copy
 import traceback
 from src.interfaces.frontend_interface import populate_or_get_frontend_cache
+from src.view.commandline_frontend.frontend_utility.coloring import RichColors
 
 
 class Command(object):
@@ -16,11 +17,12 @@ class Command(object):
     Command class.
     """
 
-    def __init__(self, command: str, function: Callable, default_kwargs: dict = None, help_text: str = None) -> None:
+    def __init__(self, command: str, function: Callable, kwargs_description: Dict[str, str], default_kwargs: dict = None, help_text: str = None) -> None:
         """
         Initiation method.
         :param command: Command.
         :param function: Function.
+        :param kwargs_description: Keyword argument descriptions.
         :param default_kwargs: Default keyword arguments.
             Defaults to None.
         :param help_text: Help text.
@@ -28,8 +30,11 @@ class Command(object):
         """
         self.command = command
         self.function = function
+        self.kwargs_description = kwargs_description
         self.default_kwargs = {} if default_kwargs is None else default_kwargs
-        self.help_text = f"No help text available for '{command}'" if help_text is None else help_text
+        self.help_text = f"[{RichColors.commands}]No help text available for '[{RichColors.command}]{command}[{RichColors.commands}]'" if help_text is None else help_text
+        for keyword in kwargs_description:
+            self.helptext = f"\n\t[{RichColors.command}]{keyword}{RichColors.commands}: {kwargs_description[keyword]}"
 
     def run_command(self, **kwargs: Optional[Any]) -> bool:
         """
