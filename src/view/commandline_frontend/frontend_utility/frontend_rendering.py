@@ -10,7 +10,7 @@ from rich.panel import Panel
 import traceback
 from rich.style import Style as RichStyle
 from prompt_toolkit.styles import Style as PTStyle
-from src.view.commandline_frontend.frontend_utility.frontend_abstractions import Command
+from src.view.commandline_frontend.frontend_utility.frontend_commands import Command
 
 
 def get_error_page(commands: List[Command]) -> dict:
