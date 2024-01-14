@@ -6,7 +6,7 @@
 ****************************************************
 """
 import os
-from typing import Optional
+from typing import Optional, List
 import requests
 import json
 import traceback
@@ -31,12 +31,15 @@ def populate_or_get_frontend_cache(force_default: bool = False) -> dict:
             cfg.PATHS.FRONTEND_DEFAULT_CACHE)
 
 
-def save_frontend_cache(cache_data: dict) -> None:
+def save_frontend_cache(cache_data: dict, ignore: List[str] = []) -> None:
     """
     Function for saving state cache.
     :param cache_data: Cache data.
+    :param ignore: List of keys to ignore.
+        Defaults to empty list.
     """
-    json_utility.save(cache_data, cfg.PATHS.FRONTEND_CACHE)
+    json_utility.save({key: value for key, value in cache_data.items(
+    ) if key not in ignore}, cfg.PATHS.FRONTEND_CACHE)
 
 
 def load_response_file(response_name: str) -> dict:
