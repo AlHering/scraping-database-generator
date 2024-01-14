@@ -8,6 +8,7 @@
 from typing import Optional, Any, Callable
 import copy
 import traceback
+from src.interfaces.frontend_interface import populate_or_get_frontend_cache
 
 
 class Command(object):
@@ -51,3 +52,19 @@ class Command(object):
         Method for printing a help text.
         """
         print(self.help_text)
+
+
+def reset_and_return(**kwargs: Optional[Any]) -> None:
+    """
+    Function for resetting and return.
+    :param kwargs: Additonal keyword arguments.
+    """
+    kwargs["cache"] = populate_or_get_frontend_cache(force_default=True)
+    kwargs["cache"]["current_path"] = ["main_page"]
+
+
+RESET_CACHE_AND_RETURN_TO_MAIN = Command(
+    command="reset-and-return",
+    function=lambda **kwargs: reset_and_return(kwargs),
+    help_text="Reset the cache and return to the main page."
+)
