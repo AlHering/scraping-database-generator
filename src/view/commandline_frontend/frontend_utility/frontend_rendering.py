@@ -28,7 +28,7 @@ def get_error_page(commands: List[Command]) -> dict:
     return {
         "pre_panels": [],
         "execute": [],
-        "post_panels": [Panel(f"""{content}""", title="[red bold]Error", border_style=RichStyle(color="red"))],
+        "post_panels": [Panel(f"{content}", title="[red bold]Error", border_style=RichStyle(color="red"))],
         "commands": commands,
         "prompt": ""
     }
@@ -40,7 +40,7 @@ def get_available_command_panel(available_commands: List[Command] = None) -> Opt
     :param available_commands: List of available commands.
     :return: Panel, containing available commands, if there are any.
     """
-    pass
+    return Panel("\n".join([f"{cmd.command}: {cmd.help_text}" for cmd in available_commands]), title="[cyan bold] Commands", border_style=RichStyle(color="cyan")) if available_commands else None
 
 
 def get_bottom_toolbar() -> str:
