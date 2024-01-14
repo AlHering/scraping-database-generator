@@ -7,7 +7,7 @@
 """
 from rich import print as rich_print
 from src.interfaces.frontend_interface import populate_or_get_frontend_cache, save_frontend_cache
-from src.view.commandline_frontend.frontend_utility.frontend_commands import Command
+from src.view.commandline_frontend.frontend_utility.frontend_commands import RESET_CACHE_AND_RETURN_TO_MAIN
 from src.view.commandline_frontend.frontend_utility import frontend_rendering
 from src.utility.bronze import dictionary_utility
 from prompt_toolkit import PromptSession
@@ -26,7 +26,7 @@ APP_CONFIG = {
         "commands": [],
         "prompt": ""
     },
-    "error_page": frontend_rendering.get_error_page([])
+    "error_page": frontend_rendering.get_error_page([RESET_CACHE_AND_RETURN_TO_MAIN])
 }
 CACHE = None
 CLOSE_SESSION = None
@@ -97,7 +97,7 @@ def run_session_loop(source: str = None) -> None:
                 user_input = user_input.split(" ")
             # TODO: Handle inpu
         except Exception:
-            current_path = ["error_page"]
+            CACHE["current_path"] = ["error_page"]
 
 
 """
