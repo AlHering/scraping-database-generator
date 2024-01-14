@@ -74,24 +74,28 @@ def run_session_loop(source: str = None) -> None:
         else:
             current_state = APP_CONFIG.get("error_page", {})
 
-        for panel in current_state.get("pre_panels", []):
-            rich_print(panel)
-        for command in current_state.get("execute", []):
-            command.run_command(**CACHE)
-        for panel in current_state.get("post_panels", []):
-            rich_print(panel)
-        commands = current_state.get("commands", [])
-        command_panel = frontend_rendering.get_available_command_panel()
-        if command_panel is not None:
-            rich_print(command_panel)
+        try:
+            for panel in current_state.get("pre_panels", []):
+                rich_print(panel)
+            for command in current_state.get("execute", []):
+                command.run_command(**CACHE)
+            for panel in current_state.get("post_panels", []):
+                rich_print(panel)
+            commands = current_state.get("commands", [])
+            command_panel = frontend_rendering.get_available_command_panel()
+            if command_panel is not None:
+                rich_print(command_panel)
 
-        completer = WordCompleter([command.command for command in commands])
+            completer = WordCompleter(
+                [command.command for command in commands])
 
-        user_input = session.prompt(
-            f"{current_state.get('prompt', '')}> ", completer=completer)
-        if user_input is not None:
-            user_input = user_input.split(" ")
-        # TODO: Handle input
+            user_input = session.prompt(
+                f"{current_state.get('prompt', '')}> ", completer=completer)
+            if user_input is not None:
+                user_input = user_input.split(" ")
+            # TODO: Handle inpu
+        except Exception:
+            current_path = ["error_page"]
 
 
 """
