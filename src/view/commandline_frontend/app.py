@@ -23,13 +23,7 @@ APP_CONFIG = {
         "commands": [],
         "prompt": ""
     },
-    "error_page": {
-        "pre_panels": [],
-        "execute": [],
-        "post_panels": [],
-        "commands": [],
-        "prompt": ""
-    }
+    "error_page": frontend_rendering.get_error_page()
 }
 CACHE = None
 
@@ -39,12 +33,14 @@ def run_session_loop(source: str = None) -> None:
     Command line interface for Image Generation resource handling.""
     """
     allowed_sources = [source] if source else []
+    CACHE = populate_or_get_frontend_cache()
+
     session = PromptSession(
         bottom_toolbar=frontend_rendering.get_bottom_toolbar(),
         style=frontend_rendering.get_style(),
         auto_suggest=AutoSuggestFromHistory()
     )
-    current_path = ["main_page"]
+    current_path = ["error_page"]
     close_session = False
 
     while not close_session:
@@ -75,5 +71,4 @@ def run_session_loop(source: str = None) -> None:
 Entrypoint
 """
 if __name__ == "__main__":
-    CACHE = populate_or_get_frontend_cache()
     run_session_loop()
