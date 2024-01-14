@@ -16,8 +16,20 @@ from prompt_toolkit.completion import WordCompleter
 
 
 APP_CONFIG = {
-    "main_page": {},
-    "error_page": {}
+    "main_page": {
+        "pre_panels": [],
+        "execute": [],
+        "post_panels": [],
+        "commands": [],
+        "prompt": ""
+    },
+    "error_page": {
+        "pre_panels": [],
+        "execute": [],
+        "post_panels": [],
+        "commands": [],
+        "prompt": ""
+    }
 }
 CACHE = None
 
@@ -48,15 +60,14 @@ def run_session_loop(source: str = None) -> None:
             command.run_command(**CACHE)
         for panel in current_state.get("post_panels", []):
             rich_print(panel)
-        for panel in current_state.get("post_panels", []):
-            rich_print(panel)
         commands = current_state.get("commands", [])
         command_panel = frontend_rendering.get_available_command_panel()
         if command_panel is not None:
             rich_print(command_panel)
 
         completer = WordCompleter([command.command for command in commands])
-        user_input = session.prompt("> ", completer=completer).split(" ")
+        user_input = session.prompt(
+            f"{current_state.get('prompt', '')}> ", completer=completer).split(" ")
         # TODO: Handle input
 
 
