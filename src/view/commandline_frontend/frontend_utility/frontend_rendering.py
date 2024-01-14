@@ -10,6 +10,7 @@ from rich.panel import Panel
 import traceback
 from rich.style import Style as RichStyle
 from prompt_toolkit.styles import Style as PTStyle
+from src.view.commandline_frontend.frontend_utility.coloring import RichColors
 from src.view.commandline_frontend.frontend_utility.frontend_commands import Command
 
 
@@ -21,12 +22,12 @@ def get_error_page(commands: List[Command]) -> dict:
     """
     trace = traceback.format_exc()
     if trace == "NoneType: None\n":
-        content = f"[red] An error appeared."
+        content = f"[{RichColors.error}] An error appeared."
     else:
-        content = f"[red]{trace}"
+        content = f"[{RichColors.error}]{trace}"
 
-    panels = [Panel(f"{content}", title="[red bold]Error",
-                    border_style=RichStyle(color="red"))]
+    panels = [Panel(f"{content}", title=f"[{RichColors.error} bold]Error",
+                    border_style=RichStyle(color=RichColors.error))]
     if commands:
         panels.append(get_available_command_panel(commands))
 
@@ -45,7 +46,7 @@ def get_available_command_panel(available_commands: List[Command] = None) -> Opt
     :param available_commands: List of available commands.
     :return: Panel, containing available commands, if there are any.
     """
-    return Panel("\n".join([f"[bright_blue]{cmd.command}[cyan]: {cmd.help_text}" for cmd in available_commands]), title="[cyan bold]Commands", border_style=RichStyle(color="cyan")) if available_commands else None
+    return Panel("\n".join([f"[{RichColors.command}]{cmd.command}[{RichColors.command}]: {cmd.help_text}" for cmd in available_commands]), title=f"[{RichColors.command} bold]Commands", border_style=RichStyle(color=RichColors.command)) if available_commands else None
 
 
 def get_bottom_toolbar() -> str:
