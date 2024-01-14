@@ -78,7 +78,7 @@ def run_session_loop(source: str = None) -> None:
             for panel in current_state.get("pre_panels", []):
                 rich_print(panel)
             for command in current_state.get("execute", []):
-                command.run_command(**CACHE)
+                command.run_command(cache=CACHE)
             for panel in current_state.get("post_panels", []):
                 rich_print(panel)
             commands = current_state.get("commands", [])
