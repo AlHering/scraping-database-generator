@@ -47,12 +47,6 @@ class Command(object):
             print(f"Exception {ex} appeared.\nTrace:{traceback.format_exc()}")
             return False
 
-    def show_help_text(self) -> None:
-        """
-        Method for printing a help text.
-        """
-        print(self.help_text)
-
 
 def reset_and_return(**kwargs: Optional[Any]) -> None:
     """
