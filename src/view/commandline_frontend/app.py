@@ -6,15 +6,18 @@
 ****************************************************
 """
 from rich import print as rich_print
-from src.interfaces.frontend_interface import populate_or_get_frontend_cache
+from src.interfaces.frontend_interface import populate_or_get_frontend_cache, save_frontend_cache
 from src.view.commandline_frontend.frontend_utility.frontend_abstractions import Command
 from src.view.commandline_frontend.frontend_utility import frontend_rendering
 from src.utility.bronze import dictionary_utility
 from prompt_toolkit import PromptSession
 from prompt_toolkit.auto_suggest import AutoSuggestFromHistory
 from prompt_toolkit.completion import WordCompleter
+from prompt_toolkit.key_binding.key_bindings import KeyBindings
+from prompt_toolkit.key_binding.key_processor import KeyPressEvent
 
 
+BINDINGS = KeyBindings()
 APP_CONFIG = {
     "main_page": {
         "pre_panels": [],
@@ -26,24 +29,45 @@ APP_CONFIG = {
     "error_page": frontend_rendering.get_error_page()
 }
 CACHE = None
+CLOSE_SESSION = None
+
+
+@BINDINGS.add("c-c")
+@BINDINGS.add("c-d")
+def exit_app(event: KeyPressEvent) -> None:
+    """
+    Function for exiting app.
+    :param event: Event that resulted in entering the function.
+    """
+    global CLOSE_SESSION, CACHE
+
+    CLOSE_SESSION = True
+    if event.key_sequence[0].key.value == "c-d":
+        rich_print("[green bold]Saving cache...")
+        save_frontend_cache(CACHE)
+    rich_print("[bold]Bye [white]...")
+    event.app.exit()
 
 
 def run_session_loop(source: str = None) -> None:
     """
     Command line interface for Image Generation resource handling.""
     """
+
+    global CLOSE_SESSION, CACHE, BINDINGS
     allowed_sources = [source] if source else []
     CACHE = populate_or_get_frontend_cache()
 
     session = PromptSession(
         bottom_toolbar=frontend_rendering.get_bottom_toolbar(),
         style=frontend_rendering.get_style(),
-        auto_suggest=AutoSuggestFromHistory()
+        auto_suggest=AutoSuggestFromHistory(),
+        key_bindings=BINDINGS
     )
     current_path = ["error_page"]
-    close_session = False
+    CLOSE_SESSION = False
 
-    while not close_session:
+    while not CLOSE_SESSION:
         if dictionary_utility.exists(APP_CONFIG, current_path):
             current_state = dictionary_utility.extract_nested_value(
                 APP_CONFIG, current_path)
@@ -62,8 +86,11 @@ def run_session_loop(source: str = None) -> None:
             rich_print(command_panel)
 
         completer = WordCompleter([command.command for command in commands])
+
         user_input = session.prompt(
-            f"{current_state.get('prompt', '')}> ", completer=completer).split(" ")
+            f"{current_state.get('prompt', '')}> ", completer=completer)
+        if user_input is not None:
+            user_input = user_input.split(" ")
         # TODO: Handle input
 
 
