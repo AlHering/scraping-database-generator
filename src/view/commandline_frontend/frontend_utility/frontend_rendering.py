@@ -26,15 +26,11 @@ def get_error_page(commands: List[Command]) -> dict:
     else:
         content = f"[{RichColors.error}]{trace}"
 
-    panels = [Panel(f"{content}", title=f"[{RichColors.error} bold]Error",
-                    border_style=RichStyle(color=RichColors.error))]
-    if commands:
-        panels.append(get_available_command_panel(commands))
-
     return {
         "pre_panels": [],
         "execute": [],
-        "post_panels": panels,
+        "post_panels": [Panel(f"{content}", title=f"[{RichColors.error} bold]Error",
+                              border_style=RichStyle(color=RichColors.error))],
         "commands": commands,
         "prompt": ""
     }
@@ -47,7 +43,7 @@ def get_available_command_panel(available_commands: List[Command] = None) -> Opt
     :return: Panel, containing available commands, if there are any.
     """
     usage_text = f"[{RichColors.commands}]Command usage: [{RichColors.command}]<CMD>[{RichColors.commands}] "
-    usage_text += f"--[{RichColors.command}]<FLAG>[{RichColors.commands}]... --[{RichColors.command}]<ARGUMENT>[{RichColors.commands}]=[{RichColors.value}]<VALUE>[{RichColors.commands}]...\n"
+    usage_text += f"--[{RichColors.command}]<FLAG>[{RichColors.commands}]... --[{RichColors.command}]<ARGUMENT>[{RichColors.commands}]=[{RichColors.value}]<VALUE>[{RichColors.commands}]...\n\n"
     return Panel(usage_text + "\n".join([f"[{RichColors.command} bold]{cmd.command}[/][{RichColors.commands}]: {cmd.help_text}" for cmd in available_commands]), title=f"[{RichColors.commands} bold]Commands", border_style=RichStyle(color=RichColors.commands)) if available_commands else None
 
 
