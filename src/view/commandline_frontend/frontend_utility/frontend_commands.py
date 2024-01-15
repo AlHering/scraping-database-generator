@@ -30,7 +30,7 @@ class Command(object):
         """
         self.command = command
         self.function = function
-        self.kwargs_description = argument_descriptions
+        self.argument_descriptions = argument_descriptions
         self.default_kwargs = {} if default_kwargs is None else default_kwargs
         self.help_text = f"[{RichColors.commands}]No help text available for '[{RichColors.command}]{command}[{RichColors.commands}]'" if help_text is None else help_text
         for keyword in argument_descriptions:
