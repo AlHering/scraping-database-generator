@@ -34,7 +34,7 @@ class Command(object):
         self.default_kwargs = {} if default_kwargs is None else default_kwargs
         self.help_text = f"[{RichColors.commands}]No help text available for '[{RichColors.command}]{command}[{RichColors.commands}]'" if help_text is None else help_text
         for keyword in argument_descriptions:
-            self.helptext = f"\n\t[{RichColors.command}]{keyword}{RichColors.commands}: {argument_descriptions[keyword]}"
+            self.help_text += f"\n    [{RichColors.command}]--{keyword}[{RichColors.commands}]: {argument_descriptions[keyword]}"
 
     def run_command(self, **kwargs: Optional[Any]) -> bool:
         """
