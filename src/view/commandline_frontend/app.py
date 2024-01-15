@@ -84,7 +84,8 @@ def run_session_loop(source: str = None) -> None:
             for panel in current_state.get("post_panels", []):
                 rich_print(panel)
             commands = current_state.get("commands", [])
-            command_panel = frontend_rendering.get_available_command_panel()
+            command_panel = frontend_rendering.get_available_command_panel(
+                commands)
             if command_panel is not None:
                 rich_print(command_panel)
 
