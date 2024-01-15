@@ -49,13 +49,13 @@ def exit_app(event: KeyPressEvent) -> None:
     event.app.exit()
 
 
-def run_session_loop(source: str = None) -> None:
+def run_session_loop() -> None:
     """
-    Command line interface for Image Generation resource handling.""
+    Command line interface for Image Generation resource handling.
+    :param 
     """
 
     global CLOSE_SESSION, CACHE, BINDINGS
-    allowed_sources = [source] if source else []
     CACHE = populate_or_get_frontend_cache()
 
     session = PromptSession(
