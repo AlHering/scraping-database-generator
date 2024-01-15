@@ -46,7 +46,7 @@ def get_available_command_panel(available_commands: List[Command] = None) -> Opt
     :param available_commands: List of available commands.
     :return: Panel, containing available commands, if there are any.
     """
-    usage_text = f"[{RichColors.commands}]Command usage: [{RichColors.command} bold]<CMD>[/][{RichColors.commands}] "
+    usage_text = f"[{RichColors.commands}]Command usage: [{RichColors.command}]<CMD>[{RichColors.commands}] "
     usage_text += f"--[{RichColors.command}]<FLAG>[{RichColors.commands}]... --[{RichColors.command}]<ARGUMENT>[{RichColors.commands}]=[{RichColors.value}]<VALUE>[{RichColors.commands}]...\n"
     return Panel(usage_text + "\n".join([f"[{RichColors.command} bold]{cmd.command}[/][{RichColors.commands}]: {cmd.help_text}" for cmd in available_commands]), title=f"[{RichColors.commands} bold]Commands", border_style=RichStyle(color=RichColors.commands)) if available_commands else None
 
