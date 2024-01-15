@@ -13,4 +13,5 @@ class RichColors(object):
     """
     error = "red"
     command = "blue"
+    value = "bright_magenta"
     commands = "cyan"
