@@ -86,11 +86,15 @@ def run_session_loop(source: str = None) -> None:
             commands = current_state.get("commands", [])
             command_panel = frontend_rendering.get_available_command_panel(
                 commands)
+
+            completion = []
             if command_panel is not None:
                 rich_print(command_panel)
-
-            completer = WordCompleter(
-                [command.command for command in commands])
+                for command in commands:
+                    completion.append(command.command)
+                    completion.extend(
+                        [f"--{argument}" for argument in list(command.argument_descriptions)])
+            completer = WordCompleter(completion)
 
             user_input = session.prompt(
                 f"{current_state.get('prompt', '')}> ", completer=completer)
