@@ -51,12 +51,51 @@ def exit_app(event: KeyPressEvent) -> None:
     event.app.exit()
 
 
+def setup_session() -> PromptSession:
+    """
+    Function for setting up prompt session.
+    :return: Prompt session.
+    """
+    global CLOSE_SESSION, CACHE, BINDINGS
+
+    CACHE = populate_or_get_frontend_cache()
+    CACHE["last_path"] = None
+    CACHE["current_path"] = ["error_page"]
+    CLOSE_SESSION = False
+    return PromptSession(
+        bottom_toolbar=frontend_rendering.get_bottom_toolbar(),
+        style=frontend_rendering.get_style(),
+        auto_suggest=AutoSuggestFromHistory(),
+        key_bindings=BINDINGS
+    )
+
+
+def get_current_state() -> dict:
+    """
+    Function for getting current state config.
+    :return: Current state config.
+    """
+    global CACHE, APP_CONFIG
+
+    CACHE["last_path"] = CACHE["current_path"]
+    if dictionary_utility.exists(APP_CONFIG, CACHE["current_path"]):
+        if len(CACHE["current_path"]) == 0:
+            CACHE["current_path"] = ["main_page"]
+        current_state = dictionary_utility.extract_nested_value(
+            APP_CONFIG, CACHE["current_path"])
+    else:
+        current_state = APP_CONFIG.get("error_page", {})
+    return current_state
+
+
 def handle_step(current_state: dict) -> List[Command]:
     """
     Function for handling a loop step.
     :param current_state: Current state config.
     :return: List of active commands.
     """
+    global CACHE
+
     for panel in current_state.get("pre_panels", []):
         rich_print(panel)
     for command in current_state.get("execute", []):
@@ -72,60 +111,63 @@ def handle_step(current_state: dict) -> List[Command]:
     return commands
 
 
+def get_completer(commands: List[Command]) -> WordCompleter:
+    """
+    Function for getting completer based on commands.
+    :param commands: Active commands.
+    :return: Completer.
+    """
+    completion = []
+    for command in commands:
+        completion.append(command.command)
+        completion.extend(
+            [f"--{argument}" for argument in list(command.argument_descriptions)])
+    return WordCompleter(completion)
+
+
+def handle_user_input(session: PromptSession, commands: List[Command], prompt: str = None) -> None:
+    """
+    Function to handle user input.
+    :param session: Prompt session.
+    :param commands: List of active commands.
+    :param prompt: A specific prompt for prompting for user input.
+        Defaults to None.
+    """
+    global CACHE
+
+    user_input = session.prompt(
+        f"{'' if prompt is None else prompt}> ", completer=get_completer(commands=commands))
+    if user_input is not None:
+        user_input = user_input.split(" --")
+        cmd = user_input[0]
+        cmd_obj = [
+            cmd_obj for cmd_obj in commands if cmd_obj.command == cmd][0]
+        cmd_kwargs = {"cache": CACHE}
+        for index, argument in enumerate(user_input[1:]):
+            if "=" in argument:
+                keyword, value = argument.split("=")
+                cmd_kwargs[keyword] = True if value.lower(
+                ) == "true" else False if value.lower() == "false" else value
+            else:
+                cmd_kwargs[list(cmd_obj.argument_descriptions.keys())[index]
+                           ] = True
+        cmd_obj.run_command(**cmd_kwargs)
+
+
 def run_session_loop() -> None:
     """
     Command line interface for Image Generation resource handling.
     """
-    global CLOSE_SESSION, CACHE, BINDINGS
-    CACHE = populate_or_get_frontend_cache()
+    global CLOSE_SESSION, CACHE
 
-    session = PromptSession(
-        bottom_toolbar=frontend_rendering.get_bottom_toolbar(),
-        style=frontend_rendering.get_style(),
-        auto_suggest=AutoSuggestFromHistory(),
-        key_bindings=BINDINGS
-    )
-    CACHE["last_path"] = None
-    CACHE["current_path"] = ["error_page"]
-    CLOSE_SESSION = False
-
+    session = setup_session()
     while not CLOSE_SESSION:
-        CACHE["last_path"] = CACHE["current_path"]
-        if dictionary_utility.exists(APP_CONFIG, CACHE["current_path"]):
-            if len(CACHE["current_path"]) == 0:
-                CACHE["current_path"] = ["main_page"]
-            current_state = dictionary_utility.extract_nested_value(
-                APP_CONFIG, CACHE["current_path"])
-        else:
-            current_state = APP_CONFIG.get("error_page", {})
-
+        current_state = get_current_state()
         try:
-
             commands = handle_step(current_state=current_state)
-            completion = []
-            for command in commands:
-                completion.append(command.command)
-                completion.extend(
-                    [f"--{argument}" for argument in list(command.argument_descriptions)])
-            completer = WordCompleter(completion)
-
-            user_input = session.prompt(
-                f"{current_state.get('prompt', '')}> ", completer=completer)
-            if user_input is not None:
-                user_input = user_input.split(" --")
-                cmd = user_input[0]
-                cmd_obj = [
-                    cmd_obj for cmd_obj in commands if cmd_obj.command == cmd][0]
-                cmd_kwargs = {"cache": CACHE}
-                for index, argument in enumerate(user_input[1:]):
-                    if "=" in argument:
-                        keyword, value = argument.split("=")
-                        cmd_kwargs[keyword] = True if value.lower(
-                        ) == "true" else False if value.lower() == "false" else value
-                    else:
-                        cmd_kwargs[list(cmd_obj.argument_descriptions.keys())[index]
-                                   ] = True
-                cmd_obj.run_command(**cmd_kwargs)
+            handle_user_input(session=session,
+                              commands=commands,
+                              prompt=current_state.get("prompt"))
         except Exception as ex:
             print(ex)
             print(traceback.format_exc())
