@@ -9,7 +9,7 @@ import os
 from typing import Optional, Any, Callable, Dict
 import copy
 import traceback
-from src.interfaces.frontend_interface import populate_or_get_frontend_cache, save_frontend_cache
+from src.interfaces.frontend_interface import populate_or_get_frontend_cache, dump_frontend_cache
 from src.view.commandline_frontend.frontend_utility.coloring import RichColors
 
 
@@ -67,12 +67,13 @@ def reset_and_return(**kwargs: Optional[Any]) -> None:
         if dump_path:
             dump_folder = os.path.dirname(dump_path)
             if os.path.exists(dump_folder):
-                save_frontend_cache(
+                dump_frontend_cache(
                     kwargs["cache"], ignore=IGNORED_CACHE_FIELDS, output_path=dump_path)
             else:
                 raise OSError(f"Could not find '{dump_folder}'")
         else:
-            
+            dump_frontend_cache(kwargs["cache"], ignore=IGNORED_CACHE_FIELDS)
+
     kwargs["cache"] = populate_or_get_frontend_cache(force_default=True)
     kwargs["cache"]["current_path"] = ["main_page"]
 
