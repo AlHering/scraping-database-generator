@@ -31,15 +31,17 @@ def populate_or_get_frontend_cache(force_default: bool = False) -> dict:
             cfg.PATHS.FRONTEND_DEFAULT_CACHE)
 
 
-def save_frontend_cache(cache_data: dict, ignore: List[str] = []) -> None:
+def save_frontend_cache(cache_data: dict, ignore: List[str] = [], output_path: str = None) -> None:
     """
     Function for saving state cache.
     :param cache_data: Cache data.
     :param ignore: List of keys to ignore.
         Defaults to empty list.
+    :param output_path: Output path.
+        Defaults to None in wich case the standard output path is used.
     """
     json_utility.save({key: value for key, value in cache_data.items(
-    ) if key not in ignore}, cfg.PATHS.FRONTEND_CACHE)
+    ) if key not in ignore}, cfg.PATHS.FRONTEND_CACHE if output_path is None else output_path)
 
 
 def load_response_file(response_name: str) -> dict:
