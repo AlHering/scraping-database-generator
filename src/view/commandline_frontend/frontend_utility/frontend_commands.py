@@ -65,5 +65,9 @@ def reset_and_return(**kwargs: Optional[Any]) -> None:
 RESET_CACHE_AND_RETURN_TO_MAIN = Command(
     command="reset-and-return",
     function=lambda **kwargs: reset_and_return(kwargs),
+    argument_descriptions={
+        "dumpCache": "(optional flag) Dump cache before returning.",
+        "dumpPath": "(optional argument) Path for dumping cache."
+    },
     help_text="Reset the cache and return to the main page."
 )
