@@ -94,7 +94,7 @@ def run_session_loop(source: str = None) -> None:
             user_input = session.prompt(
                 f"{current_state.get('prompt', '')}> ", completer=completer)
             if user_input is not None:
-                user_input = user_input.split(" ")
+                user_input = user_input.split(" --")
                 cmd = user_input[0]
                 cmd_obj = [
                     cmd_obj for cmd_obj in commands if cmd_obj.command == cmd][0]
