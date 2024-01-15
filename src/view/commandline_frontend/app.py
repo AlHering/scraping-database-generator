@@ -7,7 +7,7 @@
 """
 from rich import print as rich_print
 from src.interfaces.frontend_interface import populate_or_get_frontend_cache, save_frontend_cache
-from src.view.commandline_frontend.frontend_utility.frontend_commands import RESET_CACHE_AND_RETURN_TO_MAIN
+from src.view.commandline_frontend.frontend_utility.frontend_commands import IGNORED_CACHE_FIELDS, RESET_CACHE_AND_RETURN_TO_MAIN
 from src.view.commandline_frontend.frontend_utility import frontend_rendering
 from src.utility.bronze import dictionary_utility
 from prompt_toolkit import PromptSession
@@ -44,7 +44,7 @@ def exit_app(event: KeyPressEvent) -> None:
     CLOSE_SESSION = True
     if event.key_sequence[0].key.value == "c-d":
         rich_print("[green bold]Saving cache...")
-        save_frontend_cache(CACHE, ignore=["current_path", "last_path"])
+        save_frontend_cache(CACHE, ignore=IGNORED_CACHE_FIELDS)
     rich_print("[bold]Bye [white]...")
     event.app.exit()
 
