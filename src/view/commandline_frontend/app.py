@@ -45,7 +45,7 @@ def exit_app(event: KeyPressEvent) -> None:
     if event.key_sequence[0].key.value == "c-d":
         rich_print("[green bold]Saving cache...")
         save_frontend_cache(CACHE, ignore=IGNORED_CACHE_FIELDS)
-    rich_print("[bold]Bye [white]...")
+    rich_print("[bold]\nBye [white]...")
     event.app.exit()
 
 
@@ -54,7 +54,6 @@ def run_session_loop() -> None:
     Command line interface for Image Generation resource handling.
     :param 
     """
-
     global CLOSE_SESSION, CACHE, BINDINGS
     CACHE = populate_or_get_frontend_cache()
 
