@@ -12,7 +12,7 @@ import json
 import traceback
 from http.client import responses as status_codes
 from src.configuration import configuration as cfg
-from src.utility.bronze import requests_utility, json_utility
+from src.utility.bronze import requests_utility, json_utility, time_utility
 
 
 def populate_or_get_frontend_cache(force_default: bool = False) -> dict:
@@ -42,6 +42,20 @@ def save_frontend_cache(cache_data: dict, ignore: List[str] = [], output_path: s
     """
     json_utility.save({key: value for key, value in cache_data.items(
     ) if key not in ignore}, cfg.PATHS.FRONTEND_CACHE if output_path is None else output_path)
+
+
+def dump_frontend_cache(cache_data: dict, ignore: List[str] = [], output_path: str = None) -> None:
+    """
+    Function for dumping state cache.
+    :param cache_data: Cache data.
+    :param ignore: List of keys to ignore.
+        Defaults to empty list.
+    :param output_path: Output path.
+        Defaults to None in wich case the standard output path is used.
+    """
+    output_path = f"{cfg.PATHS.FRONTEND_CACHE.replace('cache.json', f'{time_utility.get_timestamp()}_cache_dump.json' )}" if output_path is None else output_path
+    save_frontend_cache(cache_data=cache_data,
+                        ignore=ignore, output_path=output_path)
 
 
 def load_response_file(response_name: str) -> dict:
