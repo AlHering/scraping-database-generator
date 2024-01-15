@@ -102,10 +102,11 @@ def run_session_loop(source: str = None) -> None:
                 for index, argument in enumerate(user_input[1:]):
                     if "=" in argument:
                         keyword, value = argument.split("=")
-                        cmd_kwargs[keyword] = value
+                        cmd_kwargs[keyword] = True if value.lower(
+                        ) == "true" else False if value.lower() == "false" else value
                     else:
                         cmd_kwargs[list(cmd_obj.argument_descriptions.keys())[index]
-                                   ] = argument
+                                   ] = True
                 cmd_obj.run_command(**cmd_kwargs)
         except Exception:
             CACHE["current_path"] = ["error_page"]
