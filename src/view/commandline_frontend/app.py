@@ -95,7 +95,18 @@ def run_session_loop(source: str = None) -> None:
                 f"{current_state.get('prompt', '')}> ", completer=completer)
             if user_input is not None:
                 user_input = user_input.split(" ")
-            # TODO: Handle inpu
+                cmd = user_input[0]
+                cmd_obj = [
+                    cmd_obj for cmd_obj in commands if cmd_obj.command == cmd][0]
+                cmd_kwargs = {"cache": CACHE}
+                for index, argument in enumerate(user_input[1:]):
+                    if "=" in argument:
+                        keyword, value = argument.split("=")
+                        cmd_kwargs[keyword] = value
+                    else:
+                        cmd_kwargs[list(cmd_obj.argument_descriptions.keys())[index]
+                                   ] = argument
+                cmd_obj.run_command(**cmd_kwargs)
         except Exception:
             CACHE["current_path"] = ["error_page"]
 
