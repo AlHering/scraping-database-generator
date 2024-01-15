@@ -52,7 +52,6 @@ def exit_app(event: KeyPressEvent) -> None:
 def run_session_loop() -> None:
     """
     Command line interface for Image Generation resource handling.
-    :param 
     """
     global CLOSE_SESSION, CACHE, BINDINGS
     CACHE = populate_or_get_frontend_cache()
