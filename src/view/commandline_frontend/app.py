@@ -5,9 +5,11 @@
 *            (c) 2024 Alexander Hering             *
 ****************************************************
 """
+from typing import List
+import traceback
 from rich import print as rich_print
 from src.interfaces.frontend_interface import populate_or_get_frontend_cache, save_frontend_cache
-from src.view.commandline_frontend.frontend_utility.frontend_commands import IGNORED_CACHE_FIELDS, RESET_CACHE_AND_RETURN_TO_MAIN
+from src.view.commandline_frontend.frontend_utility.frontend_commands import Command, IGNORED_CACHE_FIELDS, RESET_CACHE_AND_RETURN_TO_MAIN
 from src.view.commandline_frontend.frontend_utility import frontend_rendering
 from src.utility.bronze import dictionary_utility
 from prompt_toolkit import PromptSession
@@ -49,6 +51,27 @@ def exit_app(event: KeyPressEvent) -> None:
     event.app.exit()
 
 
+def handle_step(current_state: dict) -> List[Command]:
+    """
+    Function for handling a loop step.
+    :param current_state: Current state config.
+    :return: List of active commands.
+    """
+    for panel in current_state.get("pre_panels", []):
+        rich_print(panel)
+    for command in current_state.get("execute", []):
+        command.run_command(cache=CACHE)
+    for panel in current_state.get("post_panels", []):
+        rich_print(panel)
+    commands = current_state.get("commands", [])
+    command_panel = frontend_rendering.get_available_command_panel(
+        commands)
+
+    if command_panel is not None:
+        rich_print(command_panel)
+    return commands
+
+
 def run_session_loop() -> None:
     """
     Command line interface for Image Generation resource handling.
@@ -77,23 +100,13 @@ def run_session_loop() -> None:
             current_state = APP_CONFIG.get("error_page", {})
 
         try:
-            for panel in current_state.get("pre_panels", []):
-                rich_print(panel)
-            for command in current_state.get("execute", []):
-                command.run_command(cache=CACHE)
-            for panel in current_state.get("post_panels", []):
-                rich_print(panel)
-            commands = current_state.get("commands", [])
-            command_panel = frontend_rendering.get_available_command_panel(
-                commands)
 
+            commands = handle_step(current_state=current_state)
             completion = []
-            if command_panel is not None:
-                rich_print(command_panel)
-                for command in commands:
-                    completion.append(command.command)
-                    completion.extend(
-                        [f"--{argument}" for argument in list(command.argument_descriptions)])
+            for command in commands:
+                completion.append(command.command)
+                completion.extend(
+                    [f"--{argument}" for argument in list(command.argument_descriptions)])
             completer = WordCompleter(completion)
 
             user_input = session.prompt(
@@ -113,7 +126,9 @@ def run_session_loop() -> None:
                         cmd_kwargs[list(cmd_obj.argument_descriptions.keys())[index]
                                    ] = True
                 cmd_obj.run_command(**cmd_kwargs)
-        except Exception:
+        except Exception as ex:
+            print(ex)
+            print(traceback.format_exc())
             CACHE["current_path"] = ["error_page"]
 
 
